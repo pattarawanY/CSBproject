@@ -1,0 +1,20 @@
+# Ignore node_modules โฟลเดอร์นอกสุด
+/node_modules/
+
+# Ignore build output (dist, build)
+dist/
+build/
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Env files (ถ้ามี)
+.env
