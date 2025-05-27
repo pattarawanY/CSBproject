@@ -28,6 +28,9 @@ app.use('/user', userRoutes);
 const projectRoutes = require('./src/route/projectRoute');
 app.use('/project', projectRoutes);
 
+const project1Routes = require('./src/route/project1Route');
+app.use('/project1', project1Routes);
+
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
 })
