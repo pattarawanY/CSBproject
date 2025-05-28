@@ -125,21 +125,31 @@ function Project1() {
                                                                 <input
                                                                     type="radio"
                                                                     name={`mentorStatus-${index}`}
-                                                                    value="Y"
-                                                                    checked={editIndex === index ? formData.mentorStatus === 'Y' : p.mentorStatus === 'Y'}
-                                                                    onChange={() => setFormData({ ...formData, mentorStatus: 'Y' })}
+                                                                    value="1"
+                                                                    checked={editIndex === index
+                                                                        ? formData.mentorStatus === '1'
+                                                                        : pj1
+                                                                            ? String(pj1.mentorStatus) === '1'
+                                                                            : false
+                                                                    }
+                                                                    onChange={() => setFormData({ ...formData, mentorStatus: '1' })}
                                                                     disabled={editIndex !== index}
-                                                                    className="ml-2"
+                                                                    className="ml-2 accent-[#000066]"
                                                                 />
                                                                 <span className="text-xs">แต่งตั้งแล้ว</span>
                                                                 <input
                                                                     type="radio"
                                                                     name={`mentorStatus-${index}`}
-                                                                    value="N"
-                                                                    checked={editIndex === index ? formData.mentorStatus === 'N' : p.mentorStatus === 'N'}
-                                                                    onChange={() => setFormData({ ...formData, mentorStatus: 'N' })}
+                                                                    value="0"
+                                                                    checked={editIndex === index
+                                                                        ? formData.mentorStatus === '0'
+                                                                        : pj1
+                                                                            ? String(pj1.mentorStatus) === '0'
+                                                                            : false
+                                                                    }
+                                                                    onChange={() => setFormData({ ...formData, mentorStatus: '0' })}
                                                                     disabled={editIndex !== index}
-                                                                    className="ml-4"
+                                                                    className="ml-4 accent-[#000066]"
                                                                 />
                                                                 <span className="text-xs">ยังไม่แต่งตั้ง</span>
                                                             </label>
@@ -150,24 +160,30 @@ function Project1() {
                                                                 <span className="font-semibold">ยื่นเอกสารขอสอบ</span>
                                                                 <input
                                                                     type="radio"
-                                                                    name={`mentorStatus-${index}`}
-                                                                    value="Y"
+                                                                    name={`docStatus-${index}`}
+                                                                    value="1"
                                                                     checked={editIndex === index
-                                                                        ? formData.mentorStatus === 'Y'
+                                                                        ? formData.docStatus === '1'
                                                                         : pj1
-                                                                            ? pj1.mentorStatus === 'Y'
+                                                                            ? String(pj1.docStatus) === '1'
                                                                             : false
                                                                     }
-                                                                    onChange={() => setFormData({ ...formData, mentorStatus: 'Y' })}
+                                                                    onChange={() => setFormData({ ...formData, docStatus: '1' })}
                                                                     disabled={editIndex !== index}
+                                                                    className="ml-2"
                                                                 />
                                                                 <span className="text-xs">ยื่นเอกสารแล้ว</span>
                                                                 <input
                                                                     type="radio"
                                                                     name={`docStatus-${index}`}
-                                                                    value="N"
-                                                                    checked={editIndex === index ? formData.docStatus === 'N' : p.docStatus === 'N'}
-                                                                    onChange={() => setFormData({ ...formData, docStatus: 'N' })}
+                                                                    value="0"
+                                                                    checked={editIndex === index
+                                                                        ? formData.docStatus === '0'
+                                                                        : pj1
+                                                                            ? String(pj1.docStatus) === '0'
+                                                                            : false
+                                                                    }
+                                                                    onChange={() => setFormData({ ...formData, docStatus: '0' })}
                                                                     disabled={editIndex !== index}
                                                                     className="ml-4"
                                                                 />
@@ -198,7 +214,7 @@ function Project1() {
                                                                 <span className="font-semibold">ผลการสอบ</span>
                                                                 <input
                                                                     type="text"
-                                                                    value={editIndex === index ? formData.gradePj1 : p.gradePj1 || ''}
+                                                                    value={editIndex === index ? formData.gradePj1 : pj1 ? pj1.gradePj1 || '-' : '-'}
                                                                     onChange={e => setFormData({ ...formData, gradePj1: e.target.value })}
                                                                     className="ml-2 border px-1 py-0.5 text-xs w-24"
                                                                     disabled={editIndex !== index}
@@ -229,10 +245,10 @@ function Project1() {
                                                                     type="button"
                                                                     onClick={() => {
                                                                         setFormData({
-                                                                            mentorStatus: p.mentorStatus || '',
-                                                                            docStatus: p.docStatus || '',
-                                                                            gradePj1: p.gradePj1 || '',
-                                                                            yearPj1: p.yearPj1 || ''
+                                                                            mentorStatus: pj1 && pj1.mentorStatus !== undefined ? String(pj1.mentorStatus) : '',
+                                                                            docStatus: pj1 && pj1.docStatus !== undefined ? String(pj1.docStatus) : '',
+                                                                            gradePj1: pj1?.gradePj1 || '',
+                                                                            yearPj1: pj1?.yearPj1 || ''
                                                                         });
                                                                         setEditIndex(index);
                                                                     }}

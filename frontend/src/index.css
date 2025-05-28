@@ -67,3 +67,35 @@ body {
   border-color: #000066; /* เปลี่ยนสีขอบเมื่อโฟกัส */
   box-shadow: 0 0 5px rgba(0, 0, 102, 0.5); /* เพิ่มเงาเมื่อโฟกัส */
 }
+
+input[type="radio"]:checked {
+  accent-color: #000066;
+}
+
+input[type="radio"].custom-disabled {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #000066;
+  border-radius: 50%;
+  background: #fff;
+  position: relative;
+  cursor: not-allowed;
+}
+
+input[type="radio"].custom-disabled:checked::before {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  background: #000066;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+}
+
+input[type="radio"]:disabled:checked {
+  accent-color: #000066;
+  /* สำหรับบาง browser ที่ไม่รองรับ accent-color กับ disabled ให้ใช้ appearance: none และ custom style */
+}
