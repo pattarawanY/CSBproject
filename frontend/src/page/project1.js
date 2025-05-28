@@ -38,31 +38,26 @@ function Project1() {
 
     const handleSave = async (index) => {
         const p_ID = projects[index].p_ID;
-        // สมมติคุณเก็บค่าจาก input ใน state เช่น formData
         const data = {
             p_ID,
-            mentorStatus: formData.mentorStatus,   // จาก radio แต่งตั้งที่ปรึกษา
-            docStatus: formData.docStatus,         // จาก radio ยื่นเอกสารขอสอบ
-            gradePj1: formData.gradePj1,           // จาก input ผลสอบ
-            yearPj1: formData.yearPj1,             // จาก input ปีการศึกษา
+            mentorStatus: formData.mentorStatus,
+            docStatus: formData.docStatus,
+            gradePj1: formData.gradePj1,
+            yearPj1: formData.yearPj1,
             modifiedDate: new Date().toISOString().slice(0, 19).replace('T', ' ')
         };
 
         try {
-            // ตรวจสอบว่ามีข้อมูลใน project1 สำหรับ p_ID นี้หรือยัง
             const res = await axios.get(`http://localhost:8000/project1/${p_ID}`);
             if (res.data && res.data.pj1_ID) {
-                // มีข้อมูลแล้ว → update
                 await axios.put(`http://localhost:8000/project1/update/${res.data.pj1_ID}`, data);
                 alert('อัปเดตข้อมูลสำเร็จ');
             } else {
-                // ยังไม่มี → create
                 data.createdDate = data.modifiedDate;
                 await axios.post('http://localhost:8000/project1/create', data);
                 alert('บันทึกข้อมูลใหม่สำเร็จ');
             }
         } catch (error) {
-            // ถ้า error 404 แปลว่ายังไม่มีข้อมูล → create
             if (error.response && error.response.status === 404) {
                 data.createdDate = data.modifiedDate;
                 await axios.post('http://localhost:8000/project1/create', data);
@@ -73,6 +68,7 @@ function Project1() {
             }
         }
         setEditIndex(null);
+        window.location.reload(); // เพิ่มบรรทัดนี้เพื่อรีเฟรชหน้าเว็บ
     };
 
     return (
@@ -129,7 +125,7 @@ function Project1() {
                                                                     checked={editIndex === index
                                                                         ? formData.mentorStatus === '1'
                                                                         : pj1
-                                                                            ? String(pj1.mentorStatus) === '1'
+                                                                            ? String(pj1.mentorStatus ?? '0') === '1'
                                                                             : false
                                                                     }
                                                                     onChange={() => setFormData({ ...formData, mentorStatus: '1' })}
@@ -144,8 +140,8 @@ function Project1() {
                                                                     checked={editIndex === index
                                                                         ? formData.mentorStatus === '0'
                                                                         : pj1
-                                                                            ? String(pj1.mentorStatus) === '0'
-                                                                            : false
+                                                                            ? String(pj1.mentorStatus ?? '0') === '0'
+                                                                            : true // ถ้าไม่มีข้อมูล ให้ default เป็น 0 (ยังไม่แต่งตั้ง)
                                                                     }
                                                                     onChange={() => setFormData({ ...formData, mentorStatus: '0' })}
                                                                     disabled={editIndex !== index}
@@ -165,12 +161,12 @@ function Project1() {
                                                                     checked={editIndex === index
                                                                         ? formData.docStatus === '1'
                                                                         : pj1
-                                                                            ? String(pj1.docStatus) === '1'
+                                                                            ? String(pj1.docStatus ?? '0') === '1'
                                                                             : false
                                                                     }
                                                                     onChange={() => setFormData({ ...formData, docStatus: '1' })}
                                                                     disabled={editIndex !== index}
-                                                                    className="ml-2"
+                                                                    className="ml-2 accent-[#000066]"
                                                                 />
                                                                 <span className="text-xs">ยื่นเอกสารแล้ว</span>
                                                                 <input
@@ -180,12 +176,12 @@ function Project1() {
                                                                     checked={editIndex === index
                                                                         ? formData.docStatus === '0'
                                                                         : pj1
-                                                                            ? String(pj1.docStatus) === '0'
-                                                                            : false
+                                                                            ? String(pj1.docStatus ?? '0') === '0'
+                                                                            : true // ถ้าไม่มีข้อมูล ให้ default เป็น 0 (ยังไม่ยื่นเอกสาร)
                                                                     }
                                                                     onChange={() => setFormData({ ...formData, docStatus: '0' })}
                                                                     disabled={editIndex !== index}
-                                                                    className="ml-4"
+                                                                    className="ml-4 accent-[#000066]"
                                                                 />
                                                                 <span className="text-xs">ยังไม่ยื่นเอกสาร</span>
                                                             </label>
