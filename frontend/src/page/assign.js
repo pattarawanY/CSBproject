@@ -16,6 +16,7 @@ function Assign() {
     const [student2, setStudent2] = useState('');
     const [studentId1, setStudentId1] = useState('');
     const [studentId2, setStudentId2] = useState('');
+    const [semester, setSemester] = useState('');
 
     useEffect(() => {
         const fetchTeachers = async () => {
@@ -52,6 +53,7 @@ function Assign() {
         setStudentId2('');
         setSelectedAdvisor(null);
         setSelectedCoAdvisor(null);
+        setSemester('');
     };
 
     const handleSubmit = async (e) => {
@@ -68,6 +70,7 @@ function Assign() {
             s_code2: studentId2,
             mainMentor: selectedAdvisor,
             coMentor: selectedCoAdvisor,
+            semester: semester,
             createdDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
             modifiedDate: new Date().toISOString().slice(0, 19).replace('T', ' ')
         };
@@ -247,6 +250,19 @@ function Assign() {
                                         ))}
                                     </div>
                                 )}
+                            </div>
+
+                            <div className="flex-1">
+                                <label className="block mb-1 text-sm text-gray-600">ปีการศึกษา</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-4 py-2 border rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#000066]"
+                                    placeholder="เช่น 2/2566"
+                                    required
+                                    value={semester}
+                                    onChange={e => setSemester(e.target.value)}
+                                    name="semester"
+                                />
                             </div>
                         </div>
                         <div className="flex justify-center">

@@ -15,7 +15,22 @@ const Project1Controller = {
         }
     },
 
-    // POST /project1/create
+    async getPj1PendingStatus(req, res) {
+        // โปรเจคที่ยังไม่มีสถานะสักอย่าง(รอกรอก)
+    },
+
+    async getPj1PassStatus(req, res) {
+        // โปรเจคที่สอบผ่านแล้ว เอกสารครบ มีเกรด ไปโปรเจค2
+    },
+
+    async getPj1FailStatus(req, res) {
+        // โปรเจคที่เอกสารครบ เกรดออกแล้วเป็นF,Fe,IP
+    },
+
+    async getPj1DoccompleteStatus(req, res) {
+        // โปรเจคที่เอกสารครบ แต่ยังไม่มีเกรด
+    },
+    
     async create(req, res) {
         const { p_ID, mentorStatus, docStatus, gradePj1, yearPj1, createdDate, modifiedDate } = req.body;
         try {
@@ -29,7 +44,6 @@ const Project1Controller = {
         }
     },
 
-    // PUT /project1/update/:pj1_ID
     async update(req, res) {
         const { pj1_ID } = req.params;
         const { mentorStatus, docStatus, gradePj1, yearPj1, modifiedDate } = req.body;
