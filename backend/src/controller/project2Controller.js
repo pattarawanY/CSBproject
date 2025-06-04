@@ -13,6 +13,14 @@ const Project2Controller = {
             res.status(500).json({ error: 'Internal server error' });
         }
     },
+
+    async create(req, res) {
+
+    },
+
+    async update(req, res) {
+        
+    }
 }
 
 module.exports = Project2Controller;

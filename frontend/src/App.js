@@ -4,6 +4,7 @@ import Assign from './page/assign';
 import Project1 from './page/project1';
 import Project2 from './page/project2';
 import Profile from './page/profile';
+import AllProject from './page/allproject';
 
 function App() {
     return (
@@ -14,6 +15,7 @@ function App() {
             <Route path="/project1" element={<Project1 />} />
             <Route path="/project2" element={<Project2 />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/allproject" element={<AllProject />} />
             </Routes>
         </div>
         </BrowserRouter>

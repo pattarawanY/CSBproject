@@ -31,6 +31,9 @@ app.use('/project', projectRoutes);
 const project1Routes = require('./src/route/project1Route');
 app.use('/project1', project1Routes);
 
+const project2Routes = require('./src/route/project2Route');
+app.use('/project2', project2Routes);
+
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
 })

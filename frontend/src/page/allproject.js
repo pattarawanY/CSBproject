@@ -28,3 +28,16 @@
 // ผลอิ๊งครบ ขาดอย่างใดอย่างหนึ่ง -> ขึ้นว่า ยังไม่ผ่านโปรเจค2(ใส่หมายเหตุว่าทำไมยังไม่ผ่าน)
 
 //เจค2 กรณียังสอบอิ๊งไม่ครบคู่ และสอบเจคแล้ว เกรดออกแล้ว จะยังไม่จบ เพราะต้องรอให้อิ๊งครบก่อน
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import Navbar from '../component/navbar';
+
+function AllProject() {
+    return (
+        <div>
+            <Navbar />
+        </div>
+    )
+}
+
+export default AllProject;

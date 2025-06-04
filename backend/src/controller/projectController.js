@@ -27,7 +27,6 @@ const ProjectController = {
 
     async createProject(req, res) {
         const {
-            p_ID,
             p_nameEN,
             p_nameTH,
             s_name1,
@@ -38,16 +37,26 @@ const ProjectController = {
             coMentor,
             semester,
             createdDate,
-            modifiedDate
+            modifiedDate,
+            yearPj1
         } = req.body;
+        const db = require('../db');
         try {
-            await db.query(
+            // 1. Insert ลง project (ไม่ต้องใส่ p_ID)
+            const [result] = await db.query(
                 `INSERT INTO project 
-                (p_ID, p_nameEN, p_nameTH, s_name1, s_name2, s_code1, s_code2, mainMentor, coMentor, semester, createdDate, modifiedDate)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [p_ID, p_nameEN, p_nameTH, s_name1, s_name2, s_code1, s_code2, mainMentor, coMentor, semester, createdDate, modifiedDate]
+                (p_nameEN, p_nameTH, s_name1, s_name2, s_code1, s_code2, mainMentor, coMentor, semester, createdDate, modifiedDate)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [p_nameEN, p_nameTH, s_name1, s_name2, s_code1, s_code2, mainMentor, coMentor, semester, createdDate, modifiedDate]
             );
-            res.status(201).json({ message: 'Project created successfully' });
+            const newProjectId = result.insertId; // <-- ได้ p_ID ที่เพิ่ง insert
+
+            // 2. Insert ลง project1 โดยใช้ p_ID ที่ได้มา
+            await db.query(
+                `INSERT INTO project1 (p_ID, yearPj1, createdDate, modifiedDate) VALUES (?, ?, ?, ?)`,
+                [newProjectId, yearPj1, createdDate, modifiedDate]
+            );
+            res.status(201).json({ message: 'Project and Project1 created successfully' });
         } catch (error) {
             console.error('Error creating project:', error);
             res.status(500).json({ error: 'Internal server error' });

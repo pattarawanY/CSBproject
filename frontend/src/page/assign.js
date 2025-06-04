@@ -59,6 +59,21 @@ function Assign() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (selectedAdvisor && selectedCoAdvisor && selectedAdvisor === selectedCoAdvisor) {
+            alert('ที่ปรึกษาหลักกับที่ปรึกษาร่วมต้องไม่ใช่คนเดียวกัน');
+            return;
+        }
+
+        if (selectedAdvisor && selectedCoAdvisor && selectedAdvisor === selectedCoAdvisor) {
+            alert('ที่ปรึกษาหลักกับที่ปรึกษาร่วมต้องไม่ใช่คนเดียวกัน');
+            return;
+        }
+
+        if (!selectedAdvisor && selectedCoAdvisor) {
+            alert('กรณีมีที่ปรึกษาร่วม ต้องมีที่ปรึกษาหลักก่อน');
+            return;
+        }
+
         // สร้างข้อมูลที่จะส่ง
         const data = {
             // สามารถสร้าง p_ID เป็น uuid หรือปล่อยให้ backend สร้างเอง
@@ -71,6 +86,7 @@ function Assign() {
             mainMentor: selectedAdvisor,
             coMentor: selectedCoAdvisor,
             semester: semester,
+            yearPj1: semester,
             createdDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
             modifiedDate: new Date().toISOString().slice(0, 19).replace('T', ' ')
         };
