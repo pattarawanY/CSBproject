@@ -76,20 +76,31 @@ const ProjectController = {
             coMentor,
             modifiedDate
         } = req.body;
+
+        // สร้าง array สำหรับเก็บ field ที่จะอัปเดต
+        const fields = [];
+        const values = [];
+
+        if (p_nameEN !== undefined) { fields.push('p_nameEN = ?'); values.push(p_nameEN); }
+        if (p_nameTH !== undefined) { fields.push('p_nameTH = ?'); values.push(p_nameTH); }
+        if (s_name1 !== undefined) { fields.push('s_name1 = ?'); values.push(s_name1); }
+        if (s_name2 !== undefined) { fields.push('s_name2 = ?'); values.push(s_name2); }
+        if (s_code1 !== undefined) { fields.push('s_code1 = ?'); values.push(s_code1); }
+        if (s_code2 !== undefined) { fields.push('s_code2 = ?'); values.push(s_code2); }
+        if (mainMentor !== undefined) { fields.push('mainMentor = ?'); values.push(mainMentor); }
+        if (coMentor !== undefined) { fields.push('coMentor = ?'); values.push(coMentor); }
+        if (modifiedDate !== undefined) { fields.push('modifiedDate = ?'); values.push(modifiedDate); }
+
+        if (fields.length === 0) {
+            return res.status(400).json({ error: 'No fields to update' });
+        }
+
+        values.push(id);
+
         try {
             const [result] = await db.query(
-                `UPDATE project SET 
-                    p_nameEN = ?, 
-                    p_nameTH = ?, 
-                    s_name1 = ?, 
-                    s_name2 = ?, 
-                    s_code1 = ?, 
-                    s_code2 = ?, 
-                    mainMentor = ?, 
-                    coMentor = ?, 
-                    modifiedDate = ?
-                WHERE p_ID = ?`,
-                [p_nameEN, p_nameTH, s_name1, s_name2, s_code1, s_code2, mainMentor, coMentor, modifiedDate, id]
+                `UPDATE project SET ${fields.join(', ')} WHERE p_ID = ?`,
+                values
             );
             if (result.affectedRows === 0) {
                 return res.status(404).json({ error: 'Project not found' });

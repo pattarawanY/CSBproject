@@ -7,7 +7,7 @@ function Project1() {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [project1Data, setProject1Data] = useState({});
-    const [mode, setMode] = useState('notpass');
+    const [mode, setMode] = useState('all');
     const [checkboxState, setCheckboxState] = useState({});
     const [isEditMode, setIsEditMode] = useState(false);
     const [gradeState, setGradeState] = useState({});
@@ -87,27 +87,45 @@ function Project1() {
         }));
     };
 
-    const filteredProjects = projects.filter(p => {
-        const pj1 = project1Data[p.p_ID];
-        if (mode === 'pending') {
-            // แสดงเฉพาะโปรเจคที่ยังไม่มีข้อมูลใน project1 (ยังไม่ได้กรอกสถานะ)
-            return !pj1;
-        }
-        if (!pj1) return mode === 'notpass' || mode === 'notyet';
+    const filteredProjects = mode === 'all'
+        ? projects
+        : projects.filter(p => {
+            const pj1 = project1Data[p.p_ID];
 
-        const isMentor = String(pj1.mentorStatus ?? '0') === '1';
-        const isDoc = String(pj1.docStatus ?? '0') === '1';
-        const hasGrade = pj1.gradePj1 && pj1.gradePj1 !== '';
-        const isPass = isMentor && isDoc && hasGrade && pj1.gradePj1 !== 'F';
-        const isFail = isMentor && isDoc && hasGrade && pj1.gradePj1 === 'F';
-        const isNotYet = isMentor && isDoc && !hasGrade;
+            if (mode === 'pending') {
+                return (
+                    !pj1 ||
+                    (
+                        (pj1.mentorStatus === null || pj1.mentorStatus === undefined) &&
+                        (pj1.docStatus === null || pj1.docStatus === undefined) &&
+                        (!pj1.gradePj1 || pj1.gradePj1 === '')
+                    )
+                );
+            }
 
-        if (mode === 'pass') return isPass;
-        if (mode === 'fail') return isFail;
-        if (mode === 'notyet') return isNotYet;
-        // notpass: ยังไม่ครบเงื่อนไขสอบผ่าน, ไม่ใช่สอบตก, ไม่ใช่ยังไม่ได้สอบ
-        return !(isPass || isFail || isNotYet);
-    });
+            if (!pj1) return false;
+
+            const isMentor = String(pj1.mentorStatus ?? '0') === '1';
+            const isDoc = String(pj1.docStatus ?? '0') === '1';
+            const hasGrade = pj1.gradePj1 && pj1.gradePj1 !== '';
+
+            if (mode === 'notyet') {
+                const filledCount = [isMentor, isDoc, hasGrade].filter(Boolean).length;
+                return filledCount > 0 && filledCount < 3;
+            }
+
+            if (mode === 'pendinggrade') {
+                return isMentor && isDoc && (!pj1.gradePj1 || pj1.gradePj1 === '');
+            }
+
+            const isPass = isMentor && isDoc && hasGrade && pj1.gradePj1 !== 'F';
+            const isFail = isMentor && isDoc && hasGrade && pj1.gradePj1 === 'F';
+
+            if (mode === 'pass') return isPass;
+            if (mode === 'fail') return isFail;
+
+            return !(isPass || isFail || (isMentor && isDoc && !hasGrade) || ([isMentor, isDoc, hasGrade].filter(Boolean).length > 0 && [isMentor, isDoc, hasGrade].filter(Boolean).length < 3));
+        });
 
     // const handleEdit = (index, p) => {
     //     setEditIndex(index);
@@ -192,14 +210,12 @@ function Project1() {
                     p.s_code2 !== editState[p.p_ID]?.s_code2
                 ) {
                     await axios.put(`http://localhost:8000/project/update/${p.p_ID}`, {
-                        p_nameEN: editState[p.p_ID]?.p_nameEN,
-                        p_nameTH: editState[p.p_ID]?.p_nameTH,
-                        s_name1: editState[p.p_ID]?.s_name1,
-                        s_name2: editState[p.p_ID]?.s_name2,
-                        s_code1: editState[p.p_ID]?.s_code1,
-                        s_code2: editState[p.p_ID]?.s_code2,
-                        mainMentor: p.mainMentor,
-                        coMentor: p.coMentor,
+                        p_nameEN: editState[p.p_ID]?.p_nameEN ?? p.p_nameEN,
+                        p_nameTH: editState[p.p_ID]?.p_nameTH ?? p.p_nameTH,
+                        s_name1: editState[p.p_ID]?.s_name1 ?? p.s_name1,
+                        s_name2: editState[p.p_ID]?.s_name2 ?? p.s_name2,
+                        s_code1: editState[p.p_ID]?.s_code1 ?? p.s_code1,
+                        s_code2: editState[p.p_ID]?.s_code2 ?? p.s_code2,
                         modifiedDate: new Date().toISOString().slice(0, 19).replace('T', ' ')
                     });
                 }
@@ -240,6 +256,12 @@ function Project1() {
                     <div className="flex justify-between gap-2 flex-wrap flex-1 mt-2">
                         <div className="flex gap-2 mb-4 flex-wrap">
                             <button
+                                className={`px-3 py-2 rounded-3xl text-xs ${mode === 'all' ? 'bg-[#000066] text-white shadow-lg' : 'bg-gray-200 text-[#000066]'}`}
+                                onClick={() => setMode('all')}
+                            >
+                                แสดงทั้งหมด
+                            </button>
+                            <button
                                 className={`px-3 py-2 rounded-3xl text-xs ${mode === 'pass' ? 'bg-[#000066] text-white shadow-lg' : 'bg-gray-200 text-[#000066]'}`}
                                 onClick={() => setMode('pass')}
                             >
@@ -255,7 +277,13 @@ function Project1() {
                                 className={`px-3 py-2 rounded-3xl text-xs ${mode === 'notyet' ? 'bg-[#000066] text-white shadow-lg' : 'bg-gray-200 text-[#000066]'}`}
                                 onClick={() => setMode('notyet')}
                             >
-                                โปรเจคที่ยังไม่สอบ/รอสอบก้าวหน้า
+                                โปรเจคที่เอกสารไม่ครบ
+                            </button>
+                            <button
+                                className={`px-3 py-2 rounded-3xl text-xs ${mode === 'pendinggrade' ? 'bg-[#000066] text-white shadow-lg' : 'bg-gray-200 text-[#000066]'}`}
+                                onClick={() => setMode('pendinggrade')}
+                            >
+                                โปรเจคที่ยังไม่มีเกรด
                             </button>
                             <button
                                 className={`px-3 py-2 rounded-3xl text-xs ${mode === 'pending' ? 'bg-[#000066] text-white shadow-lg' : 'bg-gray-200 text-[#000066]'}`}
