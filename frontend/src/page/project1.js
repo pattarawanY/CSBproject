@@ -14,6 +14,7 @@ function Project1() {
     const [remarkState, setRemarkState] = useState({});
     const [yearState, setYearState] = useState({});
     const [editState, setEditState] = useState({});
+    const [passState, setPassState] = useState({});
 
     const handleEditMode = () => setIsEditMode(true);
     const handleCancelEdit = () => setIsEditMode(false);
@@ -22,8 +23,12 @@ function Project1() {
         const fetchProject1WithProject = async () => {
             try {
                 const res = await axios.get('http://localhost:8000/project1/');
-                setProject1Data(res.data); // res.data เป็น array
-                setProjects(res.data);     // <--- เพิ่มบรรทัดนี้
+                const pj1Obj = {};
+                res.data.forEach(p => {
+                    pj1Obj[p.p_ID] = p;
+                });
+                setProject1Data(pj1Obj);
+                setProjects(res.data);
             } catch (error) {
                 console.error('Error fetching project1 with project data:', error);
             } finally {
@@ -80,10 +85,28 @@ function Project1() {
         }
     }, [project1Data, projects]);
 
+    useEffect(() => {
+        if (Object.keys(project1Data).length > 0) {
+            const initial = {};
+            projects.forEach(p => {
+                const pj1 = project1Data[p.p_ID];
+                initial[p.p_ID] = pj1 ? String(pj1.passStatus ?? '0') === '1' : false;
+            });
+            setPassState(initial);
+        }
+    }, [project1Data, projects]);
+
     const handleYearChange = (p_ID) => (e) => {
         setYearState(prev => ({
             ...prev,
             [p_ID]: e.target.value
+        }));
+    };
+
+    const handlePassChange = (p_ID) => (e) => {
+        setPassState(prev => ({
+            ...prev,
+            [p_ID]: e.target.checked
         }));
     };
 
@@ -92,13 +115,14 @@ function Project1() {
         : projects.filter(p => {
             const pj1 = project1Data[p.p_ID];
 
+            // โปรเจคที่รอกรอกสถานะ: ยังไม่มีข้อมูลในทั้ง 3 ช่อง
             if (mode === 'pending') {
                 return (
                     !pj1 ||
                     (
                         (pj1.mentorStatus === null || pj1.mentorStatus === undefined) &&
                         (pj1.docStatus === null || pj1.docStatus === undefined) &&
-                        (!pj1.gradePj1 || pj1.gradePj1 === '')
+                        (pj1.gradePj1 === null || pj1.gradePj1 === undefined || pj1.gradePj1 === '')
                     )
                 );
             }
@@ -107,24 +131,35 @@ function Project1() {
 
             const isMentor = String(pj1.mentorStatus ?? '0') === '1';
             const isDoc = String(pj1.docStatus ?? '0') === '1';
-            const hasGrade = pj1.gradePj1 && pj1.gradePj1 !== '';
+            const isPassStatus = String(pj1.passStatus ?? '0') === '1';
+            const hasGrade = pj1.gradePj1 !== null && pj1.gradePj1 !== undefined && pj1.gradePj1 !== '';
+
+            // โปรเจคที่ยังไม่มีเกรด: มี mentorStatus, docStatus ครบ (เป็น 1 ทั้งคู่) แต่ gradePj1 ว่าง
+            if (mode === 'pendinggrade') {
+                return (
+                    isMentor &&
+                    isDoc &&
+                    (pj1.gradePj1 === null || pj1.gradePj1 === undefined || pj1.gradePj1 === '')
+                );
+            }
 
             if (mode === 'notyet') {
-                const filledCount = [isMentor, isDoc, hasGrade].filter(Boolean).length;
-                return filledCount > 0 && filledCount < 3;
+                const filledCount = [isMentor, isDoc].filter(Boolean).length;
+                return filledCount > 0 && filledCount < 2;
             }
 
-            if (mode === 'pendinggrade') {
-                return isMentor && isDoc && (!pj1.gradePj1 || pj1.gradePj1 === '');
+            // เงื่อนไข pass: แต่งตั้งที่ปรึกษา, เอกสารขอสอบ, ผ่าน/ไม่ผ่าน = 1 และมีเกรด
+            if (mode === 'pass') {
+                return isMentor && isDoc && isPassStatus && hasGrade;
             }
 
-            const isPass = isMentor && isDoc && hasGrade && pj1.gradePj1 !== 'F';
-            const isFail = isMentor && isDoc && hasGrade && pj1.gradePj1 === 'F';
+            // เงื่อนไข fail: แต่งตั้งที่ปรึกษา, เอกสารขอสอบ = 1, มีเกรด และเกรดเป็น F
+            if (mode === 'fail') {
+                return isMentor && isDoc && hasGrade && pj1.gradePj1 === 'F';
+            }
 
-            if (mode === 'pass') return isPass;
-            if (mode === 'fail') return isFail;
-
-            return !(isPass || isFail || (isMentor && isDoc && !hasGrade) || ([isMentor, isDoc, hasGrade].filter(Boolean).length > 0 && [isMentor, isDoc, hasGrade].filter(Boolean).length < 3));
+            // เงื่อนไขอื่นๆ (ถ้ามี)
+            return true;
         });
 
     // const handleEdit = (index, p) => {
@@ -229,12 +264,19 @@ function Project1() {
                     remarkState[p.p_ID] !== p.note
                 ) {
                     await axios.put(`http://localhost:8000/project1/update/${p.pj1_ID}`, {
-                        mentorStatus: checkboxState[p.p_ID]?.mentorStatus ? 1 : 0,
-                        docStatus: checkboxState[p.p_ID]?.docStatus ? 1 : 0,
-                        gradePj1: gradeState[p.p_ID] || '',
-                        yearPj1: yearState[p.p_ID] || '',
+                        mentorStatus: checkboxState[p.p_ID]?.mentorStatus !== undefined
+                            ? (checkboxState[p.p_ID]?.mentorStatus ? 1 : 0)
+                            : p.mentorStatus,
+                        docStatus: checkboxState[p.p_ID]?.docStatus !== undefined
+                            ? (checkboxState[p.p_ID]?.docStatus ? 1 : 0)
+                            : p.docStatus,
+                        gradePj1: gradeState[p.p_ID] ?? p.gradePj1 ?? '',
+                        yearPj1: yearState[p.p_ID] !== undefined && yearState[p.p_ID] !== ''
+                            ? yearState[p.p_ID]
+                            : p.yearPj1 ?? '',
                         modifiedDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
-                        note: remarkState[p.p_ID] || ''
+                        passStatus: passState[p.p_ID] ? 1 : 0,
+                        note: remarkState[p.p_ID] ?? p.note ?? ''
                     });
                 }
             }
@@ -283,7 +325,7 @@ function Project1() {
                                 className={`px-3 py-2 rounded-3xl text-xs ${mode === 'pendinggrade' ? 'bg-[#000066] text-white shadow-lg' : 'bg-gray-200 text-[#000066]'}`}
                                 onClick={() => setMode('pendinggrade')}
                             >
-                                โปรเจคที่ยังไม่มีเกรด
+                                โปรเจคที่ยังไม่มีเกรด(ผ่านแล้ว)
                             </button>
                             <button
                                 className={`px-3 py-2 rounded-3xl text-xs ${mode === 'pending' ? 'bg-[#000066] text-white shadow-lg' : 'bg-gray-200 text-[#000066]'}`}
@@ -332,7 +374,8 @@ function Project1() {
                                     <th className="w-[32px] px-1 py-1 border text-xs text-center break-words">แต่งตั้งที่ปรึกษา</th>
                                     <th className="w-[32px] px-1 py-1 border text-xs text-center break-words">เอกสารขอสอบ</th>
                                     <th className="w-[24px] px-1 py-1 border text-xs text-center break-words">เกรด</th>
-                                    <th className="w-[24px] px-1 py-1 border text-xs text-center break-words">ปีการศึกษา</th>
+                                    <th className="w-[24px] px-1 py-1 border text-xs text-center break-words">ปีที่สอบ</th>
+                                    <th className="w-[32px] px-1 py-1 border text-xs text-center break-words">ผ่าน/ไม่ผ่าน</th>
                                     <th className="w-[36px] px-1 py-1 border text-xs text-center break-words">หมายเหตุ</th>
                                 </tr>
                             </thead>
@@ -417,20 +460,28 @@ function Project1() {
                                                 )}
                                             </td>
                                             <td className="w-[32px] px-1 py-1 border text-xs text-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={checkboxState[p.p_ID]?.mentorStatus || false}
-                                                    onChange={isEditMode ? handleCheckboxChange(p.p_ID, 'mentorStatus') : undefined}
-                                                    disabled={!isEditMode}
-                                                />
+                                                {isEditMode ? (
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={checkboxState[p.p_ID]?.mentorStatus || false}
+                                                        onChange={handleCheckboxChange(p.p_ID, 'mentorStatus')}
+                                                        disabled={!isEditMode}
+                                                    />
+                                                ) : (
+                                                    String(p.mentorStatus) === '1' ? '✔' : '-'
+                                                )}
                                             </td>
                                             <td className="w-[32px] px-1 py-1 border text-xs text-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={checkboxState[p.p_ID]?.docStatus || false}
-                                                    onChange={isEditMode ? handleCheckboxChange(p.p_ID, 'docStatus') : undefined}
-                                                    disabled={!isEditMode}
-                                                />
+                                                {isEditMode ? (
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={checkboxState[p.p_ID]?.docStatus || false}
+                                                        onChange={handleCheckboxChange(p.p_ID, 'docStatus')}
+                                                        disabled={!isEditMode}
+                                                    />
+                                                ) : (
+                                                    String(p.docStatus) === '1' ? '✔' : '-'
+                                                )}
                                             </td>
                                             <td className="w-[24px] px-1 py-1 border text-xs text-center">
                                                 {isEditMode ? (
@@ -456,6 +507,18 @@ function Project1() {
                                                     />
                                                 ) : (
                                                     p.yearPj1 || '-'
+                                                )}
+                                            </td>
+                                            <td className="w-[32px] px-1 py-1 border text-xs text-center">
+                                                {isEditMode ? (
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={passState[p.p_ID] || false}
+                                                        onChange={handlePassChange(p.p_ID)}
+                                                        disabled={!isEditMode}
+                                                    />
+                                                ) : (
+                                                    String(p.passStatus) === '1' ? '✔' : '-'
                                                 )}
                                             </td>
                                             <td className="w-[36px] px-1 py-1 border text-xs text-center">

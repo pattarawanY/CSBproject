@@ -70,11 +70,27 @@ const Project1Controller = {
 
     async updatePj1(req, res) {
         const { pj1_ID } = req.params;
-        const { mentorStatus, docStatus, gradePj1, yearPj1, modifiedDate } = req.body;
+        let { mentorStatus, docStatus, gradePj1, yearPj1, modifiedDate, note } = req.body;
+
         try {
+            // ดึงข้อมูลเดิมจาก database
+            const [rows] = await db.query('SELECT * FROM project1 WHERE pj1_ID = ?', [pj1_ID]);
+            if (rows.length === 0) {
+                return res.status(404).json({ error: 'Not found' });
+            }
+            const old = rows[0];
+
+            // ใช้ค่าจาก req.body ถ้ามี, ถ้าไม่มีใช้ค่าจาก database เดิม
+            mentorStatus = mentorStatus !== undefined ? mentorStatus : old.mentorStatus;
+            docStatus = docStatus !== undefined ? docStatus : old.docStatus;
+            gradePj1 = gradePj1 !== undefined ? gradePj1 : old.gradePj1;
+            yearPj1 = (yearPj1 !== undefined && yearPj1 !== '') ? yearPj1 : old.yearPj1;
+            note = note !== undefined ? note : old.note;
+            modifiedDate = modifiedDate || old.modifiedDate;
+
             await db.query(
-                'UPDATE project1 SET mentorStatus=?, docStatus=?, gradePj1=?, yearPj1=?, modifiedDate=? WHERE pj1_ID=?',
-                [mentorStatus, docStatus, gradePj1, yearPj1, modifiedDate, pj1_ID]
+                'UPDATE project1 SET mentorStatus=?, docStatus=?, gradePj1=?, yearPj1=?, modifiedDate=?, note=? WHERE pj1_ID=?',
+                [mentorStatus, docStatus, gradePj1, yearPj1, modifiedDate, note, pj1_ID]
             );
             res.json({ message: 'Updated' });
         } catch (error) {
