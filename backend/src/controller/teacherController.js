@@ -63,7 +63,33 @@ const TeacherController = {
             console.error('Error deleting teacher:', error);
             res.status(500).json({ error: 'Internal server error' });
         }
-    }
+    },
+
+    async getMentorNamesForAllProjects(req, res) {
+        try {
+            const [rows] = await db.query(`
+                SELECT 
+                    p.p_ID,
+                    p.p_nameEN,
+                    p.p_nameTH,
+                    p.s_name1,
+                    p.s_name2,
+                    p.s_code1,
+                    p.s_code2,
+                    p.semester,
+                    p.note,
+                    t1.t_name AS mainMentorName,
+                    t2.t_name AS coMentorName
+                FROM project p
+                LEFT JOIN teacher t1 ON p.mainMentor = t1.t_ID
+                LEFT JOIN teacher t2 ON p.coMentor = t2.t_ID
+            `);
+            res.json(rows);
+        } catch (error) {
+            console.error('Error fetching mentor names for all projects:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    },
 }
 
 module.exports = TeacherController;
