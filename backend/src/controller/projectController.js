@@ -125,6 +125,75 @@ const ProjectController = {
             res.status(500).json({ error: 'Internal server error' });
         }
     },
+
+    async getSemester(req, res) {
+        // ตาราง semester (id, semester(varchar))
+        try {
+            const [rows] = await db.query('SELECT * FROM semester');
+            res.json(rows);
+        } catch (error) {
+            console.error('Error fetching semesters:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    },
+
+    async createSemester(req, res) {
+        // ตาราง semester (id, semester(varchar))
+        const { semester } = req.body;
+        if (!semester) {
+            return res.status(400).json({ error: 'semester is required' });
+        }
+        try {
+            const [result] = await db.query(
+                'INSERT INTO semester (semester) VALUES (?)',
+                [semester]
+            );
+            res.status(201).json({ id: result.insertId, semester });
+        } catch (error) {
+            console.error('Error creating semester:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    },
+
+    async deleteSemester(req, res) {
+        // ตาราง semester (id, semester(varchar))
+        const { id } = req.params;
+        try {
+            const [result] = await db.query(
+                'DELETE FROM semester WHERE id = ?',
+                [id]
+            );
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ error: 'Semester not found' });
+            }
+            res.json({ message: 'Semester deleted successfully' });
+        } catch (error) {
+            console.error('Error deleting semester:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    },
+
+    async updateSemester(req, res) {
+        // ตาราง semester (id, semester(varchar))
+        const { id } = req.params;
+        const { semester } = req.body;
+        if (!semester) {
+            return res.status(400).json({ error: 'semester is required' });
+        }
+        try {
+            const [result] = await db.query(
+                'UPDATE semester SET semester = ? WHERE id = ?',
+                [semester, id]
+            );
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ error: 'Semester not found' });
+            }
+            res.json({ message: 'Semester updated successfully' });
+        } catch (error) {
+            console.error('Error updating semester:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    },
 }
 
 module.exports = ProjectController;

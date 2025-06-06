@@ -24,6 +24,7 @@ const Project1Controller = {
             const [rows] = await db.query(`
                 SELECT 
                     pj1.*,
+                    pj1.pass AS passStatus,
                     p.p_nameEN,
                     p.p_nameTH,
                     p.s_name1,
@@ -70,7 +71,7 @@ const Project1Controller = {
 
     async updatePj1(req, res) {
         const { pj1_ID } = req.params;
-        let { mentorStatus, docStatus, gradePj1, yearPj1, modifiedDate, note } = req.body;
+        let { mentorStatus, docStatus, gradePj1, yearPj1, modifiedDate, note, passStatus } = req.body;
 
         try {
             // ดึงข้อมูลเดิมจาก database
@@ -87,10 +88,11 @@ const Project1Controller = {
             yearPj1 = (yearPj1 !== undefined && yearPj1 !== '') ? yearPj1 : old.yearPj1;
             note = note !== undefined ? note : old.note;
             modifiedDate = modifiedDate || old.modifiedDate;
+            passStatus = passStatus !== undefined ? passStatus : old.passStatus;
 
             await db.query(
-                'UPDATE project1 SET mentorStatus=?, docStatus=?, gradePj1=?, yearPj1=?, modifiedDate=?, note=? WHERE pj1_ID=?',
-                [mentorStatus, docStatus, gradePj1, yearPj1, modifiedDate, note, pj1_ID]
+                'UPDATE project1 SET mentorStatus=?, docStatus=?, gradePj1=?, yearPj1=?, modifiedDate=?, note=?, pass=? WHERE pj1_ID=?',
+                [mentorStatus, docStatus, gradePj1, yearPj1, modifiedDate, note, passStatus, pj1_ID]
             );
             res.json({ message: 'Updated' });
         } catch (error) {

@@ -134,11 +134,12 @@ function Project1() {
             const isPassStatus = String(pj1.passStatus ?? '0') === '1';
             const hasGrade = pj1.gradePj1 !== null && pj1.gradePj1 !== undefined && pj1.gradePj1 !== '';
 
-            // โปรเจคที่ยังไม่มีเกรด: มี mentorStatus, docStatus ครบ (เป็น 1 ทั้งคู่) แต่ gradePj1 ว่าง
+            // โปรเจคที่ยังไม่มีเกรด: มี mentorStatus, docStatus ครบ (เป็น 1 ทั้งคู่) และ passStatus เป็น 1 แต่ gradePj1 ว่าง
             if (mode === 'pendinggrade') {
                 return (
                     isMentor &&
                     isDoc &&
+                    isPassStatus && // เพิ่มเช็คผ่าน/ไม่ผ่าน ต้องเป็น 1
                     (pj1.gradePj1 === null || pj1.gradePj1 === undefined || pj1.gradePj1 === '')
                 );
             }
@@ -518,7 +519,7 @@ function Project1() {
                                                         disabled={!isEditMode}
                                                     />
                                                 ) : (
-                                                    String(p.passStatus) === '1' ? '✔' : '-'
+                                                    String(p.passStatus) === '1' ? '✔' : 'ยังไม่ผ่าน'
                                                 )}
                                             </td>
                                             <td className="w-[36px] px-1 py-1 border text-xs text-center">
