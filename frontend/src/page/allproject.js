@@ -9,6 +9,7 @@ function AllProject() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
 
+
     useEffect(() => {
         const fetchTeachername = async () => {
             try {
@@ -51,18 +52,18 @@ function AllProject() {
 
     return (
         <div>
-            <Navbar />
+            <Navbar search={search} setSearch={setSearch} />
             <div className="flex flex-col h-screen">
                 <div className="flex-1 mt-10 flex flex-col items-left justify-start bg-gray-100 p-8">
                     <div className="flex items-center gap-4 mb-4 mt-4">
                         <h2 className="text-lg font-semibold">โปรเจคทั้งหมด(เฉพาะCSB)</h2>
-                        <input
+                        {/* <input
                             type="text"
                             className="border border-gray-400 border-[1px] bg-transparent px-3 py-2 rounded-full w-80 text-sm focus:outline-none focus:ring-2 focus:ring-[#000066]"
                             placeholder="ค้นหาโปรเจค/นักศึกษา/รหัส/ที่ปรึกษา..."
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                        />
+                        /> */}
                     </div>
                     <div className="flex items-center gap-4 w-full">
                         {loading ? (

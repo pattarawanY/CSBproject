@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
-function Navbar() {
+function Navbar({ search, setSearch }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [semesterList, setSemesterList] = useState([]);
     const [selectedSemester, setSelectedSemester] = useState("");
@@ -16,6 +16,10 @@ function Navbar() {
     const [isEditMode, setIsEditMode] = useState(false);
     const [showAddInput, setShowAddInput] = useState(false);
     const semesterPattern = /^\d{1}\/\d{4}$/;
+    const [internalSearch, setInternalSearch] = useState('');
+    const location = useLocation();
+    const searchValue = search !== undefined ? search : internalSearch;
+    const setSearchValue = setSearch !== undefined ? setSearch : setInternalSearch;
 
     // โหลดปีการศึกษาทุกครั้งที่ modal เปิดหรือหลังเพิ่ม/ลบ/แก้ไข
     const fetchSemesters = async () => {
@@ -115,33 +119,50 @@ function Navbar() {
                             CSB project management
                         </div>
                     </div>
-                    {/* ดรอปดาวน์เลือกปีการศึกษา */}
-                    <div className="relative w-32" ref={semesterDropdownRef}>
-                        <div
-                            className="px-3 py-2 border rounded-3xl bg-white text-[#000066] cursor-pointer focus:outline-none text-xs hover:bg-gray-200 hover:text-[#000066] transition-all duration-300 ease-in-out flex items-center justify-between shadow-lg"
-                            onClick={() => setIsSemesterDropdownOpen(!isSemesterDropdownOpen)}
-                        >
-                            {selectedSemester || 'เลือกปีการศึกษา'}
-                            <span className={`transform transition-transform duration-300 ${isSemesterDropdownOpen ? 'rotate-180' : ''}`}>
-                                ▼
-                            </span>
+                    <div className='flex items-center w-full max-w-lg'>
+                        {/* ช่องค้นหา */}
+                        <div className="flex-1 flex justify-center min-w-[320px]">
+                            {location.pathname !== "/" ? (
+                                <input
+                                    type="text"
+                                    className="border border-white bg-transparent px-3 py-2 rounded-full w-80 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#000066] placeholder:text-xs"
+                                    placeholder="ค้นหาโปรเจค/นักศึกษา/รหัส/ที่ปรึกษา/สถานะ..."
+                                    value={searchValue}
+                                    onChange={e => setSearchValue(e.target.value)}
+                                />
+                            ) : (
+                                // ช่องว่างขนาดเท่า input เพื่อกัน layout shift
+                                <div className="w-80 h-10" />
+                            )}
                         </div>
-                        {isSemesterDropdownOpen && (
-                            <div className="absolute top-full mt-2 z-50 w-full max-h-48 overflow-y-auto bg-white border rounded-3xl shadow-lg">
-                                {semesterList.map((sem) => (
-                                    <div
-                                        key={sem.id}
-                                        className="px-4 py-2 hover:bg-blue-50 hover:text-blue-700 cursor-pointer text-sm text-gray-700 transition-all duration-300"
-                                        onClick={() => {
-                                            setSelectedSemester(sem.semester);
-                                            setIsSemesterDropdownOpen(false);
-                                        }}
-                                    >
-                                        {sem.semester}
-                                    </div>
-                                ))}
+                        {/* ดรอปดาวน์เลือกปีการศึกษา */}
+                        <div className="relative w-32" ref={semesterDropdownRef}>
+                            <div
+                                className="px-3 py-2 border rounded-3xl bg-white text-[#000066] cursor-pointer focus:outline-none text-xs hover:bg-gray-200 hover:text-[#000066] transition-all duration-300 ease-in-out flex items-center justify-between shadow-lg"
+                                onClick={() => setIsSemesterDropdownOpen(!isSemesterDropdownOpen)}
+                            >
+                                {selectedSemester || 'เลือกปีการศึกษา'}
+                                <span className={`transform transition-transform duration-300 ${isSemesterDropdownOpen ? 'rotate-180' : ''}`}>
+                                    ▼
+                                </span>
                             </div>
-                        )}
+                            {isSemesterDropdownOpen && (
+                                <div className="absolute top-full mt-2 z-50 w-full max-h-48 overflow-y-auto bg-white border rounded-3xl shadow-lg">
+                                    {semesterList.map((sem) => (
+                                        <div
+                                            key={sem.id}
+                                            className="px-4 py-2 hover:bg-blue-50 hover:text-blue-700 cursor-pointer text-sm text-gray-700 transition-all duration-300"
+                                            onClick={() => {
+                                                setSelectedSemester(sem.semester);
+                                                setIsSemesterDropdownOpen(false);
+                                            }}
+                                        >
+                                            {sem.semester}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </nav>
