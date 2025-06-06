@@ -15,6 +15,7 @@ function Navbar() {
     const semesterDropdownRef = useRef(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [showAddInput, setShowAddInput] = useState(false);
+    const semesterPattern = /^\d{1}\/\d{4}$/;
 
     // โหลดปีการศึกษาทุกครั้งที่ modal เปิดหรือหลังเพิ่ม/ลบ/แก้ไข
     const fetchSemesters = async () => {
@@ -41,11 +42,16 @@ function Navbar() {
     // เพิ่มปีการศึกษา
     const handleAddSemester = async () => {
         if (!newSemester.trim()) return;
+        if (!semesterPattern.test(newSemester.trim())) {
+            alert('กรุณากรอกปีการศึกษาในรูปแบบ x/xxxx (เช่น 1/2567)');
+            return;
+        }
         try {
             await axios.post('http://localhost:8000/project/createsemester', { semester: newSemester });
             setNewSemester('');
             setShowModal(false);
             fetchSemesters();
+            alert('เพิ่มปีการศึกษาสำเร็จ');
         } catch (error) {
             alert('เพิ่มปีการศึกษาไม่สำเร็จ');
         }
@@ -67,13 +73,19 @@ function Navbar() {
         setEditSemesterId(id);
         setEditSemesterValue(value);
     };
+
     const handleSaveEditSemester = async (id) => {
         if (!editSemesterValue.trim()) return;
+        if (!semesterPattern.test(editSemesterValue.trim())) {
+            alert('กรุณากรอกปีการศึกษาในรูปแบบ x/xxxx (เช่น 1/2567)');
+            return;
+        }
         try {
             await axios.put(`http://localhost:8000/project/updatesemester/${id}`, { semester: editSemesterValue });
             setEditSemesterId(null);
             setEditSemesterValue('');
             fetchSemesters();
+            alert('แก้ไขปีการศึกษาสำเร็จ');
         } catch (error) {
             alert('แก้ไขปีการศึกษาไม่สำเร็จ');
         }
@@ -192,9 +204,9 @@ function Navbar() {
             {/* Modal สำหรับเพิ่ม/ลบ/แก้ไขปีการศึกษา */}
             {showModal && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-                    <div className="bg-white rounded-lg pt-6 pr-6 pb-6 pl-6 w-96 relative overflow-visible">
+                    <div className="bg-white rounded-2xl p-5 max-w-md min-w-[250px] mx-auto relative overflow-auto transition-all duration-300">
                         <button
-                            className="absolute -top-3 -right-3 w-8 h-8 flex items-center justify-center rounded-full bg-red-600 hover:bg-red-700 text-white text-lg font-bold shadow transition"
+                            className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-full bg-red-600 hover:bg-red-700 text-white text-md font-bold shadow transition z-10"
                             onClick={() => {
                                 setShowModal(false);
                                 setNewSemester('');
@@ -205,35 +217,21 @@ function Navbar() {
                         >
                             ✕
                         </button>
-                        {/* ปุ่มปิด modal แบบกากบาท */}
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-md font-semibold text-black">จัดการปีการศึกษา</h3>
-                            <button
-                                className="px-3 py-1 bg-yellow-500 text-white text-sm rounded-3xl shadow-lg hover:bg-yellow-600 transition-all duration-300 ease-in-out"
-                                onClick={() => {
-                                    setIsEditMode(!isEditMode);
-                                    setEditSemesterId(null);
-                                    setEditSemesterValue('');
-                                }}
-                            >
-                                {isEditMode ? "ปิดโหมดแก้ไข" : "แก้ไข"}
-                            </button>
-                        </div>
-                        <div className="mb-4 flex gap-2">
-                            <input
-                                type="text"
-                                className="border px-3 py-2 rounded-3xl text-sm focus:outline-none focus:ring-2 focus:ring-[#000066]"
-                                style={{ width: "225px" }}
-                                placeholder="เช่น 1/2567"
-                                value={newSemester}
-                                onChange={e => setNewSemester(e.target.value)}
-                            />
-                            {showAddInput ? (
+                        <h3 className="text-md font-semibold text-black mb-2">จัดการปีการศึกษา</h3>
+                        <div className="flex items-center gap-2 mb-2">
+                            {!showAddInput ? (
+                                <button
+                                    className="px-2 py-1 bg-[#000066] text-sm text-white shadow-lg rounded-3xl hover:bg-blue-700 transition-all duration-300 ease-in-out cursor-pointer"
+                                    onClick={() => setShowAddInput(true)}
+                                >
+                                    + เพิ่มปีการศึกษา
+                                </button>
+                            ) : (
                                 <>
                                     <input
                                         type="text"
                                         className="border px-3 py-2 rounded-3xl text-sm focus:outline-none focus:ring-2 focus:ring-[#000066]"
-                                        style={{ width: "225px" }}
+                                        style={{ width: "160px" }}
                                         placeholder="เช่น 1/2567"
                                         value={newSemester}
                                         onChange={e => setNewSemester(e.target.value)}
@@ -246,7 +244,7 @@ function Navbar() {
                                         }}
                                         disabled={!newSemester.trim()}
                                     >
-                                        เพิ่มปีการศึกษา
+                                        บันทึก
                                     </button>
                                     <button
                                         className="px-2 py-1 bg-gray-400 text-sm text-white rounded-3xl shadow-lg hover:bg-gray-500 transition-all duration-300 ease-in-out"
@@ -258,64 +256,72 @@ function Navbar() {
                                         ยกเลิก
                                     </button>
                                 </>
-                            ) : (
-                                <button
-                                    className="px-2 py-1 bg-[#000066] text-sm text-white shadow-lg rounded-3xl hover:bg-blue-700 transition-all duration-300 ease-in-out cursor-pointer"
-                                    onClick={async () => {
-                                        await handleAddSemester();
-                                        setShowAddInput(false);
-                                    }}
-                                    disabled={!newSemester.trim()}
-                                >
-                                    เพิ่มปีการศึกษา
-                                </button>
                             )}
                         </div>
-                        <div className="max-h-48 overflow-y-auto">
+                        <button
+                            className="px-3 py-1 mb-4 mt-2 bg-yellow-500 text-white text-sm rounded-3xl shadow-lg hover:bg-yellow-600 transition-all duration-300 ease-in-out ml-auto"
+                            onClick={() => {
+                                setIsEditMode(!isEditMode);
+                                setEditSemesterId(null);
+                                setEditSemesterValue('');
+                            }}
+                        >
+                            {isEditMode ? "ปิดโหมดแก้ไข" : "แก้ไข"}
+                        </button>
+                        <div className="max-h-96 overflow-y-auto pr-1">
                             {semesterList.map(sem => (
-                                <div key={sem.id} className="flex items-center gap-2 ml-2 mb-2">
+                                <div
+                                    key={sem.id}
+                                    className="flex flex-wrap items-center gap-2 mb-2 w-full"
+                                    style={{ minWidth: 0 }}
+                                >
                                     {isEditMode ? (
                                         <>
                                             <button
-                                                className="flex items-center justify-center w-5 h-5 rounded-full bg-red-600 hover:bg-red-700 transition-all duration-300 mr-2"
+                                                className="mt-1 flex items-center justify-center w-5 h-5 rounded-full bg-red-600 hover:bg-red-700 transition-all duration-300"
                                                 onClick={() => handleDeleteSemester(sem.id)}
                                                 title="ลบ"
                                                 type="button"
                                             >
                                                 <svg width="12" height="12" viewBox="0 0 16 16">
-                                                    <circle cx="8" cy="8" r="8" fill="none" />
+                                                    <circle cx="5" cy="5" r="5" fill="none" />
                                                     <rect x="4" y="7.25" width="8" height="1.5" rx="0.75" fill="#fff" />
                                                 </svg>
                                             </button>
                                             <input
                                                 type="text"
-                                                className="mt-2 text-sm border px-3 py-2 rounded-3xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                style={{ width: "150px" }}
+                                                className="mt-1 text-sm border px-2 py-1 rounded-3xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                style={{ width: "100px", minWidth: 0 }}
                                                 value={editSemesterId === sem.id ? editSemesterValue : sem.semester}
-                                                disabled={editSemesterId !== sem.id}
-                                                onChange={e => editSemesterId === sem.id && setEditSemesterValue(e.target.value)}
+                                                onChange={e => {
+                                                    setEditSemesterId(sem.id);
+                                                    setEditSemesterValue(e.target.value);
+                                                }}
                                             />
                                             <button
-                                                className="px-3 py-1 bg-green-600 text-white text-sm rounded-3xl shadow-lg hover:bg-green-700 transition-all duration-300 ease-in-out"
+                                                className="mt-1 px-2 py-1 bg-green-600 text-white text-sm rounded-3xl shadow-lg hover:bg-green-700 transition-all duration-300 ease-in-out"
                                                 onClick={() => handleSaveEditSemester(sem.id)}
-                                                disabled={editSemesterId !== sem.id || !editSemesterValue.trim()}
+                                                disabled={
+                                                    editSemesterId !== sem.id ||
+                                                    !editSemesterValue.trim() ||
+                                                    editSemesterValue === sem.semester
+                                                }
                                             >
                                                 บันทึก
                                             </button>
                                             <button
-                                                className="px-3 py-1 bg-gray-400 text-sm text-white rounded-3xl shadow-lg hover:bg-gray-500 transition-all duration-300 ease-in-out"
+                                                className="mt-1 px-2 py-1 bg-gray-400 text-sm text-white rounded-3xl shadow-lg hover:bg-gray-500 transition-all duration-300 ease-in-out"
                                                 onClick={() => {
                                                     setEditSemesterId(null);
                                                     setEditSemesterValue('');
                                                 }}
+                                                disabled={editSemesterId !== sem.id}
                                             >
                                                 ยกเลิก
                                             </button>
                                         </>
                                     ) : (
-                                        <>
-                                            <span className="flex-1">{sem.semester}</span>
-                                        </>
+                                        <span className="flex-1 truncate">{sem.semester}</span>
                                     )}
                                 </div>
                             ))}

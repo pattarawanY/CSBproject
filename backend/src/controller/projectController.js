@@ -129,7 +129,13 @@ const ProjectController = {
     async getSemester(req, res) {
         // ตาราง semester (id, semester(varchar))
         try {
-            const [rows] = await db.query('SELECT * FROM semester');
+            // แยกปี (หลัง /) และเทอม (ก่อน /) แล้ว sort ปีมาก่อน เทอมทีหลัง
+            const [rows] = await db.query(`
+                SELECT * FROM semester
+                ORDER BY 
+                    CAST(SUBSTRING_INDEX(semester, '/', -1) AS UNSIGNED) ASC,
+                    CAST(SUBSTRING_INDEX(semester, '/', 1) AS UNSIGNED) ASC
+            `);
             res.json(rows);
         } catch (error) {
             console.error('Error fetching semesters:', error);
