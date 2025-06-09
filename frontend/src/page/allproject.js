@@ -8,7 +8,8 @@ function AllProject() {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
-
+    const [selectedSemester, setSelectedSemester] = useState('');
+    const [projectsWithStatus, setProjectsWithStatus] = useState([]);
 
     useEffect(() => {
         const fetchTeachername = async () => {
@@ -26,19 +27,62 @@ function AllProject() {
 
     useEffect(() => {
         // สำหรับคอลัมสถานะ
-        // เคส 1 : กำลังสอบก้าวหน้า
-        // เช็คในดาต้าเบสตารางproject1 ถ้าข้อมูลในคอลัมpass == 0
+        // เคส 1 : สถานะ"กำลังสอบก้าวหน้า"
+        // เช็คในดาต้าเบสตารางproject1 ข้อมูลในคอลัมpass == 0
 
-        // เคส 2 : กำลังสอบป้องกัน
-        // เช็คในดาต้าเบสตารางproject1 ถ้าข้อมูลในคอลัมpass == 1 และมีข้อมูลpj1_IDนั้นในตารางproject2(ตรงกัน)
+        // เคส 2 : สถานะ"กำลังสอบป้องกัน"
+        // เช็คในดาต้าเบสตารางproject1 ข้อมูลในคอลัมpass == 1 และมีข้อมูลpj1_IDนั้นในตารางproject2(ตรงกัน)
 
-        // เคส 3 : ผ่านทั้งหมดแล้ว
-        // เช็คในดาต้าเบสตารางproject2 ถ้ามีข้อมูลทุกคอลัม
-    }, []);
+        // เคส 3 : สถานะ"ผ่านทั้งหมดแล้ว"
+        // เช็คในดาต้าเบสตารางproject2 มีข้อมูลทุกคอลัม
+        const fetchStatuses = async () => {
+            try {
+                const [pj1Res, pj2Res] = await Promise.all([
+                    axios.get('http://localhost:8000/project1/'),
+                    axios.get('http://localhost:8000/project2/')
+                ]);
+                const pj1List = pj1Res.data;
+                const pj2List = pj2Res.data;
+
+                // เพิ่ม pj1_ID ลง project2 ถ้ายังไม่มี
+                for (const pj1 of pj1List) {
+                    if (pj1.pass === 1 && !pj2List.find(x => x.pj1_ID === pj1.pj1_ID)) {
+                        await axios.post('http://localhost:8000/project2/create-if-not-exists', { pj1_ID: pj1.pj1_ID });
+                    }
+                }
+
+                const merged = projects.map(p => {
+                    const pj1 = pj1List.find(x => x.p_ID === p.p_ID);
+                    const pj2 = pj2List.find(x => x.p_ID === p.p_ID);
+
+                    let statusLabel = 'ยังไม่เข้าสอบ';
+                    if (pj1) {
+                        if (pj1.pass === 0) {
+                            statusLabel = 'กำลังสอบก้าวหน้า';
+                        } else if (pj1.pass === 1 && pj2) {
+                            statusLabel = 'กำลังสอบป้องกัน';
+                        }
+                    }
+                    if (pj2 && pj2.gradePj2 && pj2.gradePj2 !== '') {
+                        statusLabel = 'ผ่านทั้งหมดแล้ว';
+                    }
+                    return { ...p, statusLabel };
+                });
+                setProjectsWithStatus(merged);
+            } catch (error) {
+                console.error('Error fetching statuses:', error);
+            }
+        };
+        if (projects.length > 0) {
+            fetchStatuses();
+        } else {
+            setProjectsWithStatus([]);
+        }
+    }, [projects]);
 
     const filteredProjects = projects.filter(p => {
         const q = search.toLowerCase();
-        return (
+        const matchSearch =
             (p.p_nameEN && p.p_nameEN.toLowerCase().includes(q)) ||
             (p.p_nameTH && p.p_nameTH.toLowerCase().includes(q)) ||
             (p.s_name1 && p.s_name1.toLowerCase().includes(q)) ||
@@ -46,24 +90,19 @@ function AllProject() {
             (p.s_code1 && p.s_code1.toLowerCase().includes(q)) ||
             (p.s_code2 && p.s_code2.toLowerCase().includes(q)) ||
             (p.mainMentorName && p.mainMentorName.toLowerCase().includes(q)) ||
-            (p.coMentorName && p.coMentorName.toLowerCase().includes(q))
-        );
+            (p.coMentorName && p.coMentorName.toLowerCase().includes(q)) ||
+            (p.note && p.note.toLowerCase().includes(q));
+        const matchSemester = !selectedSemester || p.semester === selectedSemester;
+        return matchSearch && matchSemester;
     });
 
     return (
         <div>
-            <Navbar search={search} setSearch={setSearch} />
+            <Navbar search={search} setSearch={setSearch} selectedSemester={selectedSemester} setSelectedSemester={setSelectedSemester} />
             <div className="flex flex-col h-screen">
                 <div className="flex-1 mt-10 flex flex-col items-left justify-start bg-gray-100 p-8">
                     <div className="flex items-center gap-4 mb-4 mt-4">
                         <h2 className="text-lg font-semibold">โปรเจคทั้งหมด(เฉพาะCSB)</h2>
-                        {/* <input
-                            type="text"
-                            className="border border-gray-400 border-[1px] bg-transparent px-3 py-2 rounded-full w-80 text-sm focus:outline-none focus:ring-2 focus:ring-[#000066]"
-                            placeholder="ค้นหาโปรเจค/นักศึกษา/รหัส/ที่ปรึกษา..."
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                        /> */}
                     </div>
                     <div className="flex items-center gap-4 w-full">
                         {loading ? (
@@ -87,7 +126,7 @@ function AllProject() {
                                     <tbody>
                                         {filteredProjects.length === 0 ? (
                                             <tr>
-                                                <td colSpan={8} className="text-center py-6 text-gray-500 text-sm">
+                                                <td colSpan={9} className="text-center py-6 text-gray-500 text-sm">
                                                     ไม่มีข้อมูล
                                                 </td>
                                             </tr>
@@ -107,6 +146,7 @@ function AllProject() {
                                                     <td className="px-2 py-1 border text-xs text-center">{p.semester || '-'}</td>
                                                     <td className="px-2 py-1 border text-center text-xs">{p.mainMentorName || '-'}</td>
                                                     <td className="px-2 py-1 border text-center text-xs">{p.coMentorName || '-'}</td>
+                                                    <td className="px-2 py-1 border text-xs text-center">{p.statusLabel || '-'}</td>
                                                     <td className="px-2 py-1 border text-xs text-center">{p.note || '-'}</td>
                                                 </tr>
                                             ))

@@ -15,7 +15,7 @@ function Project1() {
     const [yearState, setYearState] = useState({});
     const [editState, setEditState] = useState({});
     const [passState, setPassState] = useState({});
-
+    const [search, setSearch] = useState('');
     const handleEditMode = () => setIsEditMode(true);
     const handleCancelEdit = () => setIsEditMode(false);
 
@@ -280,6 +280,31 @@ function Project1() {
                         note: remarkState[p.p_ID] ?? p.note ?? ''
                     });
                 }
+
+                const isMentor = checkboxState[p.p_ID]?.mentorStatus ?? (String(p.mentorStatus ?? '0') === '1');
+                const isDoc = checkboxState[p.p_ID]?.docStatus ?? (String(p.docStatus ?? '0') === '1');
+                const isPassStatus = passState[p.p_ID] ?? (String(p.passStatus ?? '0') === '1');
+                const hasGrade = gradeState[p.p_ID] || p.gradePj1;
+
+                if (isMentor && isDoc && isPassStatus && hasGrade) {
+                    // ตรวจสอบว่ามี project2 สำหรับ pj1_ID นี้หรือยัง
+                    const checkRes = await axios.get(`http://localhost:8000/project2/${p.p_ID}`).catch(() => null);
+                    if (!checkRes || !checkRes.data) {
+                        // ถ้ายังไม่มี ให้สร้างใหม่
+                        await axios.post('http://localhost:8000/project2', {
+                            pj1_ID: p.pj1_ID,
+                            yaerPj2: '', // หรือใส่ค่าที่ต้องการ
+                            gradePj2: '',
+                            engS1: '',
+                            engS2: '',
+                            test30: '',
+                            docStatus2: '',
+                            gradeSend1: '',
+                            gradeSend2: '',
+                            note: ''
+                        });
+                    }
+                }
             }
             alert('บันทึกข้อมูลสำเร็จ');
             setIsEditMode(false);
@@ -292,7 +317,7 @@ function Project1() {
 
     return (
         <div className="flex flex-col h-screen">
-            <Navbar />
+            <Navbar search={search} setSearch={setSearch} />
             <div className="flex-1 mt-10 flex flex-col items-left justify-start bg-gray-100 p-8">
                 <div className="flex items-center gap-4 w-full">
                     <h2 className="text-lg font-semibold mb-2">การสอบก้าวหน้า</h2>

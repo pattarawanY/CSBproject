@@ -2,10 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
-function Navbar({ search, setSearch }) {
+function Navbar({ search, setSearch, selectedSemester, setSelectedSemester }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [semesterList, setSemesterList] = useState([]);
-    const [selectedSemester, setSelectedSemester] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [newSemester, setNewSemester] = useState('');
     const [editSemesterId, setEditSemesterId] = useState(null);
@@ -147,19 +146,29 @@ function Navbar({ search, setSearch }) {
                                 </span>
                             </div>
                             {isSemesterDropdownOpen && (
-                                <div className="absolute top-full mt-2 z-50 w-full max-h-48 overflow-y-auto bg-white border rounded-3xl shadow-lg">
-                                    {semesterList.map((sem) => (
-                                        <div
-                                            key={sem.id}
-                                            className="px-4 py-2 hover:bg-blue-50 hover:text-blue-700 cursor-pointer text-sm text-gray-700 transition-all duration-300"
-                                            onClick={() => {
-                                                setSelectedSemester(sem.semester);
-                                                setIsSemesterDropdownOpen(false);
-                                            }}
-                                        >
-                                            {sem.semester}
-                                        </div>
-                                    ))}
+                                <div className="absolute top-full mt-2 z-50 w-full bg-white border rounded-3xl shadow-lg">
+                                    <div className="max-h-[120px] overflow-y-auto pr-1">
+                                        {semesterList.map((sem, idx) => {
+                                            const isFirst = idx === 0;
+                                            const isLast = idx === semesterList.length - 1;
+                                            return (
+                                                <div
+                                                    key={sem.id}
+                                                    className={
+                                                        "px-4 py-2 hover:bg-blue-50 hover:text-blue-700 cursor-pointer text-sm text-gray-700 transition-all duration-300 " +
+                                                        (isFirst ? "rounded-t-3xl " : "") +
+                                                        (isLast ? "rounded-b-3xl " : "")
+                                                    }
+                                                    onClick={() => {
+                                                        setSelectedSemester(sem.semester);
+                                                        setIsSemesterDropdownOpen(false);
+                                                    }}
+                                                >
+                                                    {sem.semester}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             )}
                         </div>

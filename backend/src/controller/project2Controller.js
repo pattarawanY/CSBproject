@@ -15,12 +15,38 @@ const Project2Controller = {
     },
 
     async create(req, res) {
+        // รับข้อมูลจาก req.body
+        const {
+            pj1_ID,
+            yaerPj2,
+            gradePj2,
+            engS1,
+            engS2,
+            test30,
+            docStatus2,
+            gradeSend1,
+            gradeSend2,
+            note
+        } = req.body;
 
+        try {
+            // เพิ่มข้อมูลลงใน project2
+            const [result] = await db.query(
+                `INSERT INTO project2 
+                (pj1_ID, yaerPj2, gradePj2, engS1, engS2, test30, docStatus2, gradeSend1, gradeSend2, createdDate, modifiedDate, note)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), ?)`,
+                [pj1_ID, yaerPj2, gradePj2, engS1, engS2, test30, docStatus2, gradeSend1, gradeSend2, note]
+            );
+            res.status(201).json({ pj2_ID: result.insertId, ...req.body });
+        } catch (error) {
+            res.status(500).json({ error: 'Internal server error' });
+        }
     },
 
     async update(req, res) {
-        
-    }
+
+    },
+
 }
 
 module.exports = Project2Controller;

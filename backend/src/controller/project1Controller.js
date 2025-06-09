@@ -42,18 +42,54 @@ const Project1Controller = {
 
     async getPj1PendingStatus(req, res) {
         // โปรเจคที่ยังไม่มีสถานะสักอย่าง(รอกรอก)
+        try {
+            const [rows] = await db.query(`
+                SELECT * FROM project1
+                WHERE mentorStatus IS NULL AND docStatus IS NULL AND gradePj1 IS NULL
+            `);
+            res.json(rows);
+        } catch (error) {
+            res.status(500).json({ error: 'Internal server error' });
+        }
     },
 
     async getPj1PassStatus(req, res) {
         // โปรเจคที่สอบผ่านแล้ว เอกสารครบ มีเกรด ไปโปรเจค2
+        try {
+            const [rows] = await db.query(`
+                SELECT * FROM project1
+                WHERE docStatus = 1 AND gradePj1 IS NOT NULL AND pass = 1
+            `);
+            res.json(rows);
+        } catch (error) {
+            res.status(500).json({ error: 'Internal server error' });
+        }
     },
 
     async getPj1FailStatus(req, res) {
-        // โปรเจคที่เอกสารครบ เกรดออกแล้วเป็นF,Fe,IP
+        // โปรเจคที่เอกสารครบ เกรดออกแล้วเป็น F, Fe, IP
+        try {
+            const [rows] = await db.query(`
+                SELECT * FROM project1
+                WHERE docStatus = 1 AND (gradePj1 = 'F' OR gradePj1 = 'Fe' OR gradePj1 = 'IP')
+            `);
+            res.json(rows);
+        } catch (error) {
+            res.status(500).json({ error: 'Internal server error' });
+        }
     },
 
     async getPj1DoccompleteStatus(req, res) {
         // โปรเจคที่เอกสารครบ แต่ยังไม่มีเกรด
+        try {
+            const [rows] = await db.query(`
+                SELECT * FROM project1
+                WHERE docStatus = 1 AND (gradePj1 IS NULL OR gradePj1 = '')
+            `);
+            res.json(rows);
+        } catch (error) {
+            res.status(500).json({ error: 'Internal server error' });
+        }
     },
 
     async createPj1(req, res) {
