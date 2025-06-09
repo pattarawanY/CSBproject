@@ -1,5 +1,3 @@
-// แสดงโปรเจคทั้งหมดที่ถูกแอดเข้ามา แสดงสถานะว่าผ่านเจค1แล้ว หรือผ่านเจค2แล้ว ถ้ายังไม่ผ่านให้แสดงว่าทำไมยังไม่ผ่าน(ติดอะไร)
-// หน้านี้ต้องค้นหาจากปีการศึกษา ชื่อเจค ชื่อนศ รหัสนศ
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from '../component/navbar';
@@ -16,6 +14,7 @@ function AllProject() {
             try {
                 const res = await axios.get('http://localhost:8000/teacher/project-mentors');
                 setProjects(res.data);
+                console.log('projects', res.data); // <--- เพิ่มบรรทัดนี้
             } catch (error) {
                 console.error('Error fetching projects:', error);
             } finally {
@@ -44,30 +43,35 @@ function AllProject() {
                 const pj1List = pj1Res.data;
                 const pj2List = pj2Res.data;
 
-                // เพิ่ม pj1_ID ลง project2 ถ้ายังไม่มี
-                for (const pj1 of pj1List) {
-                    if (pj1.pass === 1 && !pj2List.find(x => x.pj1_ID === pj1.pj1_ID)) {
-                        await axios.post('http://localhost:8000/project2/create-if-not-exists', { pj1_ID: pj1.pj1_ID });
-                    }
-                }
-
                 const merged = projects.map(p => {
-                    const pj1 = pj1List.find(x => x.p_ID === p.p_ID);
-                    const pj2 = pj2List.find(x => x.p_ID === p.p_ID);
+                    const pj1 = pj1List.find(x => x.p_ID.toString() === p.p_ID.toString());
+                    const pj2 = pj1 ? pj2List.find(x => x.pj1_ID.toString() === pj1.pj1_ID.toString()) : undefined;
+
+                    console.log('p.p_ID:', p.p_ID);
+                    console.log('pj1:', pj1);
+                    console.log('pj2:', pj2);
 
                     let statusLabel = 'ยังไม่เข้าสอบ';
-                    if (pj1) {
-                        if (pj1.pass === 0) {
-                            statusLabel = 'กำลังสอบก้าวหน้า';
-                        } else if (pj1.pass === 1 && pj2) {
-                            statusLabel = 'กำลังสอบป้องกัน';
-                        }
-                    }
-                    if (pj2 && pj2.gradePj2 && pj2.gradePj2 !== '') {
+
+                    if (pj2 && pj2.gradePj2 && pj2.gradePj2 !== '' && pj2.gradePj2 !== 0) {
+                        console.log(`${p.p_ID} ผ่านทั้งหมดแล้ว`);
                         statusLabel = 'ผ่านทั้งหมดแล้ว';
                     }
+                    else if (pj2 && (!pj2.gradePj2 || pj2.gradePj2 === '' || pj2.gradePj2 === 0)) {
+                        console.log(`${p.p_ID} กำลังสอบป้องกัน`);
+                        statusLabel = 'กำลังสอบป้องกัน';
+                    }
+                    else if (pj1 && pj1.pass === 0) {
+                        console.log(`${p.p_ID} กำลังสอบก้าวหน้า`);
+                        statusLabel = 'กำลังสอบก้าวหน้า';
+                    }
+                    else {
+                        console.log(`${p.p_ID} ยังไม่เข้าสอบ`);
+                    }
+
                     return { ...p, statusLabel };
                 });
+
                 setProjectsWithStatus(merged);
             } catch (error) {
                 console.error('Error fetching statuses:', error);
@@ -80,7 +84,7 @@ function AllProject() {
         }
     }, [projects]);
 
-    const filteredProjects = projects.filter(p => {
+    const filteredProjects = projectsWithStatus.filter(p => {
         const q = search.toLowerCase();
         const matchSearch =
             (p.p_nameEN && p.p_nameEN.toLowerCase().includes(q)) ||

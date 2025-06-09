@@ -14,6 +14,15 @@ const Project2Controller = {
         }
     },
 
+    async getAll(req, res) {
+        try {
+            const [rows] = await db.query('SELECT * FROM project2');
+            res.json(rows);
+        } catch (error) {
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    },
+
     async create(req, res) {
         // รับข้อมูลจาก req.body
         const {
