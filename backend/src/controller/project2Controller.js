@@ -16,10 +16,10 @@ const Project2Controller = {
 
     async getAll(req, res) {
         try {
-            // Join กับตาราง project (หรือ project1) เพื่อดึงรายละเอียดโปรเจค
             const [rows] = await db.query(`
                 SELECT 
-                    p2.*, 
+                    p2.*,
+                    pj.p_ID as p_ID, 
                     pj.p_nameEN, 
                     pj.p_nameTH, 
                     pj.s_name1, 
@@ -27,7 +27,8 @@ const Project2Controller = {
                     pj.s_code1, 
                     pj.s_code2
                 FROM project2 p2
-                LEFT JOIN project pj ON p2.pj1_ID = pj.p_ID
+                LEFT JOIN project1 p1 ON p2.pj1_ID = p1.pj1_ID
+                LEFT JOIN project pj ON p1.p_ID = pj.p_ID
             `);
             res.json(rows);
         } catch (error) {
@@ -65,7 +66,19 @@ const Project2Controller = {
     },
 
     async update(req, res) {
-
+        const { id } = req.params;
+        const {
+            p_nameEN, p_nameTH, s_name1, s_name2, s_code1, s_code2, modifiedDate
+        } = req.body;
+        try {
+            await db.query(
+                `UPDATE project SET p_nameEN=?, p_nameTH=?, s_name1=?, s_name2=?, s_code1=?, s_code2=?, modifiedDate=? WHERE p_ID=?`,
+                [p_nameEN, p_nameTH, s_name1, s_name2, s_code1, s_code2, modifiedDate, id]
+            );
+            res.json({ success: true });
+        } catch (error) {
+            res.status(500).json({ error: 'Internal server error' });
+        }
     },
 
 }

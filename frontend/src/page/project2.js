@@ -22,7 +22,7 @@ function Project2() {
         const fetchProject2 = async () => {
             try {
                 const res = await axios.get('http://localhost:8000/project2/');
-                console.log(res.data); // ดูข้อมูลที่ได้
+                console.log(res.data); // ต้องเห็น p_ID อยู่ในแต่ละ object
                 setProjects(res.data);
             } catch (error) {
                 console.error('Error fetching project2:', error);
@@ -105,58 +105,28 @@ function Project2() {
         }));
     };
 
-    const filteredProjects = mode === 'all'
-        ? projects
-        : projects.filter(p => {
-            const pj1 = project1Data[p.p_ID];
-
-            // โปรเจคที่รอกรอกสถานะ: ยังไม่มีข้อมูลในทั้ง 3 ช่อง
-            if (mode === 'pending') {
-                return (
-                    !pj1 ||
-                    (
-                        (pj1.mentorStatus === null || pj1.mentorStatus === undefined) &&
-                        (pj1.docStatus === null || pj1.docStatus === undefined) &&
-                        (pj1.gradePj1 === null || pj1.gradePj1 === undefined || pj1.gradePj1 === '')
-                    )
-                );
-            }
-
-            if (!pj1) return false;
-
-            const isMentor = String(pj1.mentorStatus ?? '0') === '1';
-            const isDoc = String(pj1.docStatus ?? '0') === '1';
-            const isPassStatus = String(pj1.passStatus ?? '0') === '1';
-            const hasGrade = pj1.gradePj1 !== null && pj1.gradePj1 !== undefined && pj1.gradePj1 !== '';
-
-            // โปรเจคที่ยังไม่มีเกรด: มี mentorStatus, docStatus ครบ (เป็น 1 ทั้งคู่) และ passStatus เป็น 1 แต่ gradePj1 ว่าง
-            if (mode === 'pendinggrade') {
-                return (
-                    isMentor &&
-                    isDoc &&
-                    isPassStatus && // เพิ่มเช็คผ่าน/ไม่ผ่าน ต้องเป็น 1
-                    (pj1.gradePj1 === null || pj1.gradePj1 === undefined || pj1.gradePj1 === '')
-                );
-            }
-
-            if (mode === 'notyet') {
-                const filledCount = [isMentor, isDoc].filter(Boolean).length;
-                return filledCount > 0 && filledCount < 2;
-            }
-
-            // เงื่อนไข pass: แต่งตั้งที่ปรึกษา, เอกสารขอสอบ, ผ่าน/ไม่ผ่าน = 1 และมีเกรด
-            if (mode === 'pass') {
-                return isMentor && isDoc && isPassStatus && hasGrade;
-            }
-
-            // เงื่อนไข fail: แต่งตั้งที่ปรึกษา, เอกสารขอสอบ = 1, มีเกรด และเกรดเป็น F
-            if (mode === 'fail') {
-                return isMentor && isDoc && hasGrade && pj1.gradePj1 === 'F';
-            }
-
-            // เงื่อนไขอื่นๆ (ถ้ามี)
-            return true;
-        });
+    const filteredProjects = projects.map(p => ({
+        p_ID: p.p_ID,
+        pj1_ID: p.pj1_ID,
+        pj2_ID: p.pj2_ID,
+        yaerPj2: p.yaerPj2,
+        gradePj2: p.gradePj2,
+        engS1: p.engS1,
+        engS2: p.engS2,
+        test30: p.test30,
+        docStatus2: p.docStatus2,
+        gradeSend1: p.gradeSend1,
+        gradeSend2: p.gradeSend2,
+        createdDate: p.createdDate,
+        modifiedDate: p.modifiedDate,
+        note: p.note,
+        p_nameEN: p.p_nameEN,
+        p_nameTH: p.p_nameTH,
+        s_name1: p.s_name1,
+        s_name2: p.s_name2,
+        s_code1: p.s_code1,
+        s_code2: p.s_code2,
+    }));
 
     const handleCheckboxChange = (p_ID, field) => (e) => {
         setCheckboxState(prev => ({
@@ -194,8 +164,11 @@ function Project2() {
 
     const handleSaveAll = async () => {
         try {
+            console.log("filteredProjects:", filteredProjects);
             for (const p of filteredProjects) {
-                // 1. ถ้ามีการแก้ไขข้อมูล project2 (ข้อมูลในตารางหลัก)
+                // 1. อัปเดตข้อมูลตาราง project (ชื่อโปรเจค/นักศึกษา/รหัส)
+                console.log("Processing row:", p);
+                console.log("p_ID:", p.p_ID); // ต้องไม่ใช่ undefined
                 if (
                     p.p_nameEN !== editState[p.pj2_ID]?.p_nameEN ||
                     p.p_nameTH !== editState[p.pj2_ID]?.p_nameTH ||
@@ -204,7 +177,8 @@ function Project2() {
                     p.s_code1 !== editState[p.pj2_ID]?.s_code1 ||
                     p.s_code2 !== editState[p.pj2_ID]?.s_code2
                 ) {
-                    await axios.put(`http://localhost:8000/project2/update/${p.pj2_ID}`, {
+                    // ต้องมี p_ID ในแต่ละแถว (ควร JOIN p_ID มาด้วยจาก backend)
+                    await axios.put(`http://localhost:8000/project/update/${p.p_ID}`, {
                         p_nameEN: editState[p.pj2_ID]?.p_nameEN ?? p.p_nameEN,
                         p_nameTH: editState[p.pj2_ID]?.p_nameTH ?? p.p_nameTH,
                         s_name1: editState[p.pj2_ID]?.s_name1 ?? p.s_name1,
@@ -215,7 +189,7 @@ function Project2() {
                     });
                 }
 
-                // 2. ถ้ามีการแก้ไขข้อมูล field อื่นๆ ของ project2
+                // 2. อัปเดตข้อมูลตาราง project2 (ฟิลด์อื่นๆ)
                 if (
                     editState[p.pj2_ID]?.yaerPj2 !== undefined && editState[p.pj2_ID]?.yaerPj2 !== p.yaerPj2 ||
                     editState[p.pj2_ID]?.gradePj2 !== undefined && editState[p.pj2_ID]?.gradePj2 !== p.gradePj2 ||
@@ -357,14 +331,14 @@ function Project2() {
                                     <th className="w-[40px] px-2 py-1 border text-xs text-center">ลำดับ</th>
                                     <th className="w-[180px] px-4 py-2 border text-xs text-center">ชื่อโปรเจค</th>
                                     <th className="w-[120px] px-4 py-2 border text-xs text-center">ชื่อนักศึกษา</th>
-                                    <th className="w-[90px] px-4 py-2 border text-xs text-center">รหัสนักศึกษา</th>
+                                    <th className="w-[80px] px-4 py-2 border text-xs text-center">รหัสนักศึกษา</th>
                                     <th className="w-[60px] px-1 py-1 border text-xs text-center">ผลสอบEng1</th>
                                     <th className="w-[60px] px-1 py-1 border text-xs text-center">ผลสอบEng2</th>
                                     <th className="w-[60px] px-1 py-1 border text-xs text-center">ทดลอง 30 วัน</th>
                                     <th className="w-[80px] px-1 py-1 border text-xs text-center">เอกสารขอสอบ</th>
                                     <th className="w-[60px] px-1 py-1 border text-xs text-center">ปีที่สอบ</th>
                                     <th className="w-[60px] px-1 py-1 border text-xs text-center">ผ่าน/ไม่ผ่าน</th>
-                                    <th className="w-[60px] px-1 py-1 border text-xs text-center">เกรด</th>
+                                    <th className="w-[60px] px-1 py-1 border text-xs text-center">เกรด(โปรเจค2)</th>
                                     <th className="w-[60px] px-1 py-1 border text-xs text-center">ส่งเกรด นศ.1</th>
                                     <th className="w-[60px] px-1 py-1 border text-xs text-center">ส่งเกรด นศ.2</th>
                                     <th className="w-[80px] px-1 py-1 border text-xs text-center">หมายเหตุ</th>
@@ -380,21 +354,23 @@ function Project2() {
                                         <tr key={p.pj2_ID} className="bg-white">
                                             <td className="px-2 py-1 border text-xs text-center">{idx + 1}</td>
                                             {/* ชื่อโปรเจค */}
-                                            <td className="px-4 py-2 border text-xs text-left break-words whitespace-normal">
+                                            <td className="px-4 py-2 border text-xs text-left break-words whitespace-normal max-w-[180px] overflow-hidden">
                                                 {isEditMode ? (
                                                     <>
                                                         <input
                                                             type="text"
-                                                            className="w-full text-xs border-0 border-b border-gray-400 bg-transparent"
+                                                            className="w-full max-w-[160px] text-xs border-0 border-b border-gray-400 bg-transparent truncate"
                                                             value={editState[p.pj2_ID]?.p_nameTH ?? p.p_nameTH ?? ''}
                                                             onChange={handleEditChange(p.pj2_ID, 'p_nameTH')}
+                                                            style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
                                                         />
                                                         <br />
                                                         <input
                                                             type="text"
-                                                            className="w-full text-xs border-0 border-b border-gray-400 bg-transparent"
+                                                            className="w-full max-w-[160px] text-xs border-0 border-b border-gray-400 bg-transparent truncate"
                                                             value={editState[p.pj2_ID]?.p_nameEN ?? p.p_nameEN ?? ''}
                                                             onChange={handleEditChange(p.pj2_ID, 'p_nameEN')}
+                                                            style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
                                                         />
                                                     </>
                                                 ) : (
@@ -405,21 +381,23 @@ function Project2() {
                                                 )}
                                             </td>
                                             {/* ชื่อนักศึกษา */}
-                                            <td className="px-4 py-2 border text-xs text-left break-words whitespace-normal">
+                                            <td className="px-4 py-2 border text-xs text-left break-words whitespace-normal max-w-[120px] overflow-hidden">
                                                 {isEditMode ? (
                                                     <>
                                                         <input
                                                             type="text"
-                                                            className="w-full text-xs border-0 border-b border-gray-400 bg-transparent"
+                                                            className="w-full max-w-[110px] text-xs border-0 border-b border-gray-400 bg-transparent truncate"
                                                             value={editState[p.pj2_ID]?.s_name1 ?? p.s_name1 ?? ''}
                                                             onChange={handleEditChange(p.pj2_ID, 's_name1')}
+                                                            style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
                                                         />
                                                         <br />
                                                         <input
                                                             type="text"
-                                                            className="w-full text-xs border-0 border-b border-gray-400 bg-transparent"
+                                                            className="w-full max-w-[110px] text-xs border-0 border-b border-gray-400 bg-transparent truncate"
                                                             value={editState[p.pj2_ID]?.s_name2 ?? p.s_name2 ?? ''}
                                                             onChange={handleEditChange(p.pj2_ID, 's_name2')}
+                                                            style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
                                                         />
                                                     </>
                                                 ) : (
@@ -430,21 +408,23 @@ function Project2() {
                                                 )}
                                             </td>
                                             {/* รหัสนักศึกษา */}
-                                            <td className="px-4 py-2 border text-xs text-center">
+                                            <td className="px-4 py-2 border text-xs text-center max-w-[90px] overflow-hidden">
                                                 {isEditMode ? (
                                                     <>
                                                         <input
                                                             type="text"
-                                                            className="w-full text-xs border-0 border-b border-gray-400 bg-transparent text-center"
+                                                            className="w-full max-w-[80px] text-xs border-0 border-b border-gray-400 bg-transparent text-center truncate"
                                                             value={editState[p.pj2_ID]?.s_code1 ?? p.s_code1 ?? ''}
                                                             onChange={handleEditChange(p.pj2_ID, 's_code1')}
+                                                            style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
                                                         />
                                                         <br />
                                                         <input
                                                             type="text"
-                                                            className="w-full text-xs border-0 border-b border-gray-400 bg-transparent text-center"
+                                                            className="w-full max-w-[80px] text-xs border-0 border-b border-gray-400 bg-transparent text-center truncate"
                                                             value={editState[p.pj2_ID]?.s_code2 ?? p.s_code2 ?? ''}
                                                             onChange={handleEditChange(p.pj2_ID, 's_code2')}
+                                                            style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
                                                         />
                                                     </>
                                                 ) : (
@@ -454,7 +434,8 @@ function Project2() {
                                                     </>
                                                 )}
                                             </td>
-                                            <td className="px-1 py-1 border text-xs text-center">
+                                            {/* ผลสอบEng1 */}
+                                            <td className="px-1 py-1 border text-xs text-center max-w-[60px] overflow-hidden">
                                                 {isEditMode ? (
                                                     <input
                                                         type="checkbox"
@@ -465,7 +446,8 @@ function Project2() {
                                                     p.engS1 === 1 ? '✔' : '-'
                                                 )}
                                             </td>
-                                            <td className="px-1 py-1 border text-xs text-center">
+                                            {/* ผลสอบEng2 */}
+                                            <td className="px-1 py-1 border text-xs text-center max-w-[60px] overflow-hidden">
                                                 {isEditMode ? (
                                                     <input
                                                         type="checkbox"
@@ -476,7 +458,8 @@ function Project2() {
                                                     p.engS2 === 1 ? '✔' : '-'
                                                 )}
                                             </td>
-                                            <td className="px-1 py-1 border text-xs text-center">
+                                            {/* ทดลอง 30 วัน */}
+                                            <td className="px-1 py-1 border text-xs text-center max-w-[60px] overflow-hidden">
                                                 {isEditMode ? (
                                                     <input
                                                         type="checkbox"
@@ -487,7 +470,8 @@ function Project2() {
                                                     p.test30 === 1 ? '✔' : '-'
                                                 )}
                                             </td>
-                                            <td className="px-1 py-1 border text-xs text-center">
+                                            {/* เอกสารขอสอบ */}
+                                            <td className="px-1 py-1 border text-xs text-center max-w-[80px] overflow-hidden">
                                                 {isEditMode ? (
                                                     <input
                                                         type="checkbox"
@@ -498,19 +482,22 @@ function Project2() {
                                                     p.docStatus2 === 1 ? '✔' : '-'
                                                 )}
                                             </td>
-                                            <td className="px-1 py-1 border text-xs text-center">
+                                            {/* ปีที่สอบ */}
+                                            <td className="px-1 py-1 border text-xs text-center max-w-[60px] overflow-hidden">
                                                 {isEditMode ? (
                                                     <input
                                                         type="text"
-                                                        className="w-16 text-xs border-0 border-b border-gray-400 bg-transparent text-center"
+                                                        className="w-16 max-w-[56px] text-xs border-0 border-b border-gray-400 bg-transparent text-center truncate"
                                                         value={editState[p.pj2_ID]?.yaerPj2 ?? p.yaerPj2 ?? ''}
                                                         onChange={handleEditChange(p.pj2_ID, 'yaerPj2')}
+                                                        style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
                                                     />
                                                 ) : (
                                                     p.yaerPj2 || '-'
                                                 )}
                                             </td>
-                                            <td className="px-1 py-1 border text-xs text-center">
+                                            {/* ผ่าน/ไม่ผ่าน */}
+                                            <td className="px-1 py-1 border text-xs text-center max-w-[60px] overflow-hidden">
                                                 {isEditMode ? (
                                                     <input
                                                         type="checkbox"
@@ -521,20 +508,22 @@ function Project2() {
                                                     p.passStatus2 === 1 ? '✔' : '-'
                                                 )}
                                             </td>
-                                            <td className="px-1 py-1 border text-xs text-center">
+                                            {/* เกรด(โปรเจค2) */}
+                                            <td className="px-1 py-1 border text-xs text-center max-w-[60px] overflow-hidden">
                                                 {isEditMode ? (
                                                     <input
                                                         type="text"
-                                                        className="w-16 text-xs border-0 border-b border-gray-400 bg-transparent text-center"
+                                                        className="w-16 max-w-[56px] text-xs border-0 border-b border-gray-400 bg-transparent text-center truncate"
                                                         value={editState[p.pj2_ID]?.gradePj2 ?? p.gradePj2 ?? ''}
                                                         onChange={handleEditChange(p.pj2_ID, 'gradePj2')}
+                                                        style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
                                                     />
                                                 ) : (
                                                     p.gradePj2 || '-'
                                                 )}
                                             </td>
                                             {/* ส่งเกรด นศ.1 */}
-                                            <td className="px-1 py-1 border text-xs text-center">
+                                            <td className="px-1 py-1 border text-xs text-center max-w-[60px] overflow-hidden">
                                                 {isEditMode ? (
                                                     <input
                                                         type="checkbox"
@@ -546,7 +535,7 @@ function Project2() {
                                                 )}
                                             </td>
                                             {/* ส่งเกรด นศ.2 */}
-                                            <td className="px-1 py-1 border text-xs text-center">
+                                            <td className="px-1 py-1 border text-xs text-center max-w-[60px] overflow-hidden">
                                                 {isEditMode ? (
                                                     <input
                                                         type="checkbox"
@@ -558,13 +547,14 @@ function Project2() {
                                                 )}
                                             </td>
                                             {/* หมายเหตุ */}
-                                            <td className="px-1 py-1 border text-xs text-center">
+                                            <td className="px-1 py-1 border text-xs text-center max-w-[80px] overflow-hidden">
                                                 {isEditMode ? (
                                                     <input
                                                         type="text"
-                                                        className="w-24 text-xs border-0 border-b border-gray-400 bg-transparent text-center"
+                                                        className="w-24 max-w-[76px] text-xs border-0 border-b border-gray-400 bg-transparent text-center truncate"
                                                         value={editState[p.pj2_ID]?.note ?? p.note ?? ''}
                                                         onChange={handleEditChange(p.pj2_ID, 'note')}
+                                                        style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
                                                     />
                                                 ) : (
                                                     p.note || '-'
