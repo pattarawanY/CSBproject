@@ -34,7 +34,14 @@ const Project1Controller = {
                 FROM project1 pj1
                 LEFT JOIN project p ON pj1.p_ID = p.p_ID
             `);
-            res.json(rows);
+
+            // แปลง grades จาก string เป็น object
+            const parsedRows = rows.map(row => ({
+                ...row,
+                grades: row.grades ? JSON.parse(row.grades) : { grade1: '', grade2: '' }
+            }));
+
+            res.json(parsedRows);
         } catch (error) {
             res.status(500).json({ error: 'Internal server error' });
         }
@@ -93,11 +100,11 @@ const Project1Controller = {
     },
 
     async createPj1(req, res) {
-        const { p_ID, mentorStatus, docStatus, gradePj1, yearPj1, createdDate, modifiedDate } = req.body;
+        const { p_ID, mentorStatus, docStatus, grades, yearPj1, createdDate, modifiedDate } = req.body;
         try {
             const [result] = await db.query(
-                'INSERT INTO project1 (p_ID, mentorStatus, docStatus, gradePj1, yearPj1, createdDate, modifiedDate) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                [p_ID, mentorStatus, docStatus, gradePj1, yearPj1, createdDate, modifiedDate]
+                'INSERT INTO project1 (p_ID, mentorStatus, docStatus, grades, yearPj1, createdDate, modifiedDate) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [p_ID, mentorStatus, docStatus, JSON.stringify(grades), yearPj1, createdDate, modifiedDate]
             );
             res.json({ pj1_ID: result.insertId, ...req.body });
         } catch (error) {
@@ -107,7 +114,7 @@ const Project1Controller = {
 
     async updatePj1(req, res) {
         const { pj1_ID } = req.params;
-        let { mentorStatus, docStatus, gradePj1, yearPj1, modifiedDate, note, passStatus } = req.body;
+        let { mentorStatus, docStatus, grades, yearPj1, modifiedDate, note, passStatus } = req.body;
 
         try {
             // ดึงข้อมูลเดิมจาก database
@@ -120,15 +127,25 @@ const Project1Controller = {
             // ใช้ค่าจาก req.body ถ้ามี, ถ้าไม่มีใช้ค่าจาก database เดิม
             mentorStatus = mentorStatus !== undefined ? mentorStatus : old.mentorStatus;
             docStatus = docStatus !== undefined ? docStatus : old.docStatus;
-            gradePj1 = gradePj1 !== undefined ? gradePj1 : old.gradePj1;
+            grades = grades !== undefined ? grades : old.grades;
             yearPj1 = (yearPj1 !== undefined && yearPj1 !== '') ? yearPj1 : old.yearPj1;
             note = note !== undefined ? note : old.note;
             modifiedDate = modifiedDate || old.modifiedDate;
             passStatus = passStatus !== undefined ? passStatus : old.passStatus;
 
+            // อัปเดตฟิลด์ grades (เก็บเป็น JSON string)
             await db.query(
                 'UPDATE project1 SET mentorStatus=?, docStatus=?, gradePj1=?, yearPj1=?, modifiedDate=?, note=?, pass=? WHERE pj1_ID=?',
-                [mentorStatus, docStatus, gradePj1, yearPj1, modifiedDate, note, passStatus, pj1_ID]
+                [
+                    mentorStatus,
+                    docStatus,
+                    JSON.stringify(grades),
+                    yearPj1,
+                    modifiedDate,
+                    note,
+                    passStatus,
+                    pj1_ID
+                ]
             );
             res.json({ message: 'Updated' });
         } catch (error) {

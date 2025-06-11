@@ -18,6 +18,7 @@ function Project1() {
     const [search, setSearch] = useState('');
     const handleEditMode = () => setIsEditMode(true);
     const handleCancelEdit = () => setIsEditMode(false);
+    const [gradesState, setGradesState] = useState({});
 
     useEffect(() => {
         const fetchProject1WithProject = async () => {
@@ -79,9 +80,11 @@ function Project1() {
             const initial = {};
             projects.forEach(p => {
                 const pj1 = project1Data[p.p_ID];
-                initial[p.p_ID] = pj1 ? pj1.gradePj1 || '' : '';
+                initial[p.p_ID] = pj1 && pj1.grades
+                    ? { grade1: pj1.grades.grade1 || '', grade2: pj1.grades.grade2 || '' }
+                    : { grade1: '', grade2: '' };
             });
-            setGradeState(initial);
+            setGradesState(initial);
         }
     }, [project1Data, projects]);
 
@@ -115,14 +118,16 @@ function Project1() {
         : projects.filter(p => {
             const pj1 = project1Data[p.p_ID];
 
-            // โปรเจคที่รอกรอกสถานะ: ยังไม่มีข้อมูลในทั้ง 3 ช่อง
             if (mode === 'pending') {
                 return (
                     !pj1 ||
                     (
                         (pj1.mentorStatus === null || pj1.mentorStatus === undefined) &&
                         (pj1.docStatus === null || pj1.docStatus === undefined) &&
-                        (pj1.gradePj1 === null || pj1.gradePj1 === undefined || pj1.gradePj1 === '')
+                        (
+                            (!pj1.grades?.grade1 && !pj1.grades?.grade2) ||
+                            (pj1.grades?.grade1 === '' && pj1.grades?.grade2 === '')
+                        )
                     )
                 );
             }
@@ -132,15 +137,19 @@ function Project1() {
             const isMentor = String(pj1.mentorStatus ?? '0') === '1';
             const isDoc = String(pj1.docStatus ?? '0') === '1';
             const isPassStatus = String(pj1.passStatus ?? '0') === '1';
-            const hasGrade = pj1.gradePj1 !== null && pj1.gradePj1 !== undefined && pj1.gradePj1 !== '';
+            const hasGrade =
+                (pj1.grades?.grade1 && pj1.grades?.grade1 !== '') ||
+                (pj1.grades?.grade2 && pj1.grades?.grade2 !== '');
 
-            // โปรเจคที่ยังไม่มีเกรด: มี mentorStatus, docStatus ครบ (เป็น 1 ทั้งคู่) และ passStatus เป็น 1 แต่ gradePj1 ว่าง
             if (mode === 'pendinggrade') {
                 return (
                     isMentor &&
                     isDoc &&
-                    isPassStatus && // เพิ่มเช็คผ่าน/ไม่ผ่าน ต้องเป็น 1
-                    (pj1.gradePj1 === null || pj1.gradePj1 === undefined || pj1.gradePj1 === '')
+                    isPassStatus &&
+                    (
+                        (!pj1.grades?.grade1 || pj1.grades?.grade1 === '') &&
+                        (!pj1.grades?.grade2 || pj1.grades?.grade2 === '')
+                    )
                 );
             }
 
@@ -149,28 +158,18 @@ function Project1() {
                 return filledCount > 0 && filledCount < 2;
             }
 
-            // เงื่อนไข pass: แต่งตั้งที่ปรึกษา, เอกสารขอสอบ, ผ่าน/ไม่ผ่าน = 1 และมีเกรด
             if (mode === 'pass') {
                 return isMentor && isDoc && isPassStatus && hasGrade;
             }
 
-            // เงื่อนไข fail: แต่งตั้งที่ปรึกษา, เอกสารขอสอบ = 1, มีเกรด และเกรดเป็น F
             if (mode === 'fail') {
-                return isMentor && isDoc && hasGrade && pj1.gradePj1 === 'F';
+                // ถ้าเกรดใดเกรดหนึ่งเป็น F ถือว่าไม่ผ่าน
+                return isMentor && isDoc && hasGrade &&
+                    (pj1.grades?.grade1 === 'F' || pj1.grades?.grade2 === 'F');
             }
 
-            // เงื่อนไขอื่นๆ (ถ้ามี)
             return true;
         });
-
-    // const handleEdit = (index, p) => {
-    //     setEditIndex(index);
-    //     setFormData({
-    //         mentorStatus: false,
-    //         docStatus: false,
-    //         p_ID: p.p_ID
-    //     });
-    // };
 
     const handleCheckboxChange = (p_ID, field) => (e) => {
         setCheckboxState(prev => ({
@@ -182,10 +181,13 @@ function Project1() {
         }));
     };
 
-    const handleGradeChange = (p_ID) => (e) => {
-        setGradeState(prev => ({
+    const handleGradeChange = (p_ID, field) => (e) => {
+        setGradesState(prev => ({
             ...prev,
-            [p_ID]: e.target.value
+            [p_ID]: {
+                ...prev[p_ID],
+                [field]: e.target.value
+            }
         }));
     };
 
@@ -205,33 +207,6 @@ function Project1() {
             }
         }));
     };
-
-    // const handleCancel = () => {
-    //     setEditIndex(null);
-    //     setFormData({});
-    // };
-
-    // const handleSave = async (index) => {
-    //     const data = {
-    //         p_ID: formData.p_ID,
-    //         mentorStatus: formData.mentorStatus ? 1 : 0,
-    //         docStatus: formData.docStatus ? 1 : 0,
-    //         gradePj1: '', // ยังไม่กรอกเกรด
-    //         yearPj1: '',  // ยังไม่กรอกปี
-    //         createdDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
-    //         modifiedDate: new Date().toISOString().slice(0, 19).replace('T', ' ')
-    //     };
-    //     try {
-    //         await axios.post('http://localhost:8000/project1/create', data);
-    //         alert('บันทึกข้อมูลสำเร็จ');
-    //         setEditIndex(null);
-    //         setFormData({});
-    //         window.location.reload();
-    //     } catch (error) {
-    //         alert('เกิดข้อผิดพลาด');
-    //         console.error(error);
-    //     }
-    // };
 
     const handleSaveAll = async () => {
         try {
@@ -260,7 +235,8 @@ function Project1() {
                 if (
                     checkboxState[p.p_ID]?.mentorStatus !== p.mentorStatus ||
                     checkboxState[p.p_ID]?.docStatus !== p.docStatus ||
-                    gradeState[p.p_ID] !== p.gradePj1 ||
+                    gradesState[p.p_ID]?.grade1 !== (p.grades?.grade1 || '') ||
+                    gradesState[p.p_ID]?.grade2 !== (p.grades?.grade2 || '') ||
                     yearState[p.p_ID] !== p.yearPj1 ||
                     remarkState[p.p_ID] !== p.note
                 ) {
@@ -271,7 +247,10 @@ function Project1() {
                         docStatus: checkboxState[p.p_ID]?.docStatus !== undefined
                             ? (checkboxState[p.p_ID]?.docStatus ? 1 : 0)
                             : p.docStatus,
-                        gradePj1: gradeState[p.p_ID] ?? p.gradePj1 ?? '',
+                        grades: {
+                            grade1: gradesState[p.p_ID]?.grade1 || '',
+                            grade2: gradesState[p.p_ID]?.grade2 || ''
+                        },
                         yearPj1: yearState[p.p_ID] !== undefined && yearState[p.p_ID] !== ''
                             ? yearState[p.p_ID]
                             : p.yearPj1 ?? '',
@@ -420,12 +399,12 @@ function Project1() {
                                     <th className="w-[12px] px-2 py-1 border text-xs text-center whitespace-normal">ลำดับ</th>
                                     <th className="w-[120px] px-4 py-2 border text-xs text-center break-words whitespace-normal">ชื่อโปรเจค</th>
                                     <th className="w-[80px] px-4 py-2 border text-xs text-center break-words whitespace-normal">ชื่อนักศึกษา</th>
-                                    <th className="w-[42px] px-4 py-2 border text-xs break-words">รหัสนักศึกษา</th>
+                                    <th className="w-[38px] px-4 py-2 border text-xs text-center break-words">รหัสนักศึกษา</th>
                                     <th className="w-[32px] px-1 py-1 border text-xs text-center break-words">แต่งตั้งที่ปรึกษา</th>
                                     <th className="w-[32px] px-1 py-1 border text-xs text-center break-words">เอกสารขอสอบ</th>
                                     <th className="w-[24px] px-1 py-1 border text-xs text-center break-words">ปีที่สอบ</th>
                                     <th className="w-[32px] px-1 py-1 border text-xs text-center break-words">ผ่าน/ไม่ผ่าน</th>
-                                    <th className="w-[24px] px-1 py-1 border text-xs text-center break-words">เกรด</th>
+                                    <th className="w-[24px] px-1 py-1 border text-xs text-center break-words">เกรด(โปรเจค1)</th>
                                     <th className="w-[36px] px-1 py-1 border text-xs text-center break-words">หมายเหตุ</th>
                                 </tr>
                             </thead>
@@ -486,7 +465,7 @@ function Project1() {
                                                     </div>
                                                 )}
                                             </td>
-                                            <td className="px-4 py-2 border text-xs">
+                                            <td className="px-4 py-2 border text-xs text-center">
                                                 {isEditMode ? (
                                                     <>
                                                         <input
@@ -558,17 +537,32 @@ function Project1() {
                                                     String(p.passStatus) === '1' ? '✔' : 'ยังไม่ผ่าน'
                                                 )}
                                             </td>
-                                            <td className="w-[24px] px-1 py-1 border text-xs text-center">
+                                            <td className="w-[48px] px-1 py-1 border text-xs text-center">
                                                 {isEditMode ? (
-                                                    <input
-                                                        type="text"
-                                                        className="w-12 text-center border-0 border-b border-gray-400 rounded-none focus:ring-0 focus:border-blue-600 bg-transparent truncate"
-                                                        value={gradeState[p.p_ID] || ''}
-                                                        onChange={handleGradeChange(p.p_ID)}
-                                                        maxLength={2}
-                                                    />
+                                                    <>
+                                                        <input
+                                                            type="text"
+                                                            value={gradesState[p.p_ID]?.grade1 || ''}
+                                                            onChange={handleGradeChange(p.p_ID, 'grade1')}
+                                                            maxLength={2}
+                                                            className="w-full text-xs border-0 border-b border-gray-400 bg-transparent text-center mb-1"
+                                                            style={{ marginBottom: 2 }}
+                                                        />
+                                                        <br />
+                                                        <input
+                                                            type="text"
+                                                            value={gradesState[p.p_ID]?.grade2 || ''}
+                                                            onChange={handleGradeChange(p.p_ID, 'grade2')}
+                                                            maxLength={2}
+                                                            className="w-full text-xs border-0 border-b border-gray-400 bg-transparent text-center"
+                                                        />
+                                                    </>
                                                 ) : (
-                                                    p.gradePj1 || '-'
+                                                    <>
+                                                        <span>{p.grades?.grade1 || '-'}</span>
+                                                        <br />
+                                                        <span>{p.grades?.grade2 || '-'}</span>
+                                                    </>
                                                 )}
                                             </td>
                                             <td className="w-[36px] px-1 py-1 border text-xs text-center">

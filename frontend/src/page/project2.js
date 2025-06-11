@@ -332,8 +332,7 @@ function Project2() {
                                     <th className="w-[180px] px-4 py-2 border text-xs text-center">ชื่อโปรเจค</th>
                                     <th className="w-[120px] px-4 py-2 border text-xs text-center">ชื่อนักศึกษา</th>
                                     <th className="w-[80px] px-4 py-2 border text-xs text-center">รหัสนักศึกษา</th>
-                                    <th className="w-[60px] px-1 py-1 border text-xs text-center">ผลสอบEng1</th>
-                                    <th className="w-[60px] px-1 py-1 border text-xs text-center">ผลสอบEng2</th>
+                                    <th className="w-[60px] px-1 py-1 border text-xs text-center">ผลสอบEng</th>
                                     <th className="w-[60px] px-1 py-1 border text-xs text-center">ทดลอง 30 วัน</th>
                                     <th className="w-[80px] px-1 py-1 border text-xs text-center">เอกสารขอสอบ</th>
                                     <th className="w-[60px] px-1 py-1 border text-xs text-center">ปีที่สอบ</th>
@@ -434,28 +433,28 @@ function Project2() {
                                                     </>
                                                 )}
                                             </td>
-                                            {/* ผลสอบEng1 */}
+                                            {/* ผลสอบEng */}
                                             <td className="px-1 py-1 border text-xs text-center max-w-[60px] overflow-hidden">
                                                 {isEditMode ? (
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={editState[p.pj2_ID]?.engS1 !== undefined ? !!editState[p.pj2_ID].engS1 : !!p.engS1}
-                                                        onChange={handleEditChange(p.pj2_ID, 'engS1')}
-                                                    />
+                                                    <>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={editState[p.pj2_ID]?.engS1 !== undefined ? !!editState[p.pj2_ID].engS1 : !!p.engS1}
+                                                            onChange={handleEditChange(p.pj2_ID, 'engS1')}
+                                                        />
+                                                        <br />
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={editState[p.pj2_ID]?.engS2 !== undefined ? !!editState[p.pj2_ID].engS2 : !!p.engS2}
+                                                            onChange={handleEditChange(p.pj2_ID, 'engS2')}
+                                                        />
+                                                    </>
                                                 ) : (
-                                                    p.engS1 === 1 ? '✔' : '-'
-                                                )}
-                                            </td>
-                                            {/* ผลสอบEng2 */}
-                                            <td className="px-1 py-1 border text-xs text-center max-w-[60px] overflow-hidden">
-                                                {isEditMode ? (
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={editState[p.pj2_ID]?.engS2 !== undefined ? !!editState[p.pj2_ID].engS2 : !!p.engS2}
-                                                        onChange={handleEditChange(p.pj2_ID, 'engS2')}
-                                                    />
-                                                ) : (
-                                                    p.engS2 === 1 ? '✔' : '-'
+                                                    <>
+                                                        {p.engS1 === 1 ? '✔' : '-'}
+                                                        <br />
+                                                        {p.engS2 === 1 ? '✔' : '-'}
+                                                    </>
                                                 )}
                                             </td>
                                             {/* ทดลอง 30 วัน */}
