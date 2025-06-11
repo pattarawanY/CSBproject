@@ -324,37 +324,61 @@ function Project1() {
                     <div className="flex justify-between gap-2 flex-wrap flex-1 mt-2">
                         <div className="flex gap-2 mb-4 flex-wrap">
                             <button
-                                className={`px-3 py-2 rounded-3xl text-xs ${mode === 'all' ? 'bg-[#000066] text-white shadow-lg' : 'bg-gray-200 text-[#000066]'}`}
+                                className={`px-3 py-2 rounded-3xl text-xs transition-all duration-200
+                                    ${mode === 'all'
+                                        ? 'bg-[#000066] text-white shadow-lg'
+                                        : 'bg-gray-200 text-[#000066] hover:bg-yellow-400 hover:text-[#000066] hover:scale-105'
+                                    }`}
                                 onClick={() => setMode('all')}
                             >
                                 แสดงทั้งหมด
                             </button>
                             <button
-                                className={`px-3 py-2 rounded-3xl text-xs ${mode === 'pass' ? 'bg-[#000066] text-white shadow-lg' : 'bg-gray-200 text-[#000066]'}`}
+                                className={`px-3 py-2 rounded-3xl text-xs transition-all duration-200
+                                    ${mode === 'pass'
+                                        ? 'bg-[#000066] text-white shadow-lg'
+                                        : 'bg-gray-200 text-[#000066] hover:bg-yellow-400 hover:text-[#000066] hover:scale-105'
+                                    }`}
                                 onClick={() => setMode('pass')}
                             >
                                 โปรเจคที่สอบก้าวหน้าผ่านแล้ว
                             </button>
                             <button
-                                className={`px-3 py-2 rounded-3xl text-xs ${mode === 'fail' ? 'bg-[#000066] text-white shadow-lg' : 'bg-gray-200 text-[#000066]'}`}
+                                className={`px-3 py-2 rounded-3xl text-xs transition-all duration-200
+                                    ${mode === 'fail'
+                                        ? 'bg-[#000066] text-white shadow-lg'
+                                        : 'bg-gray-200 text-[#000066] hover:bg-yellow-400 hover:text-[#000066] hover:scale-105'
+                                    }`}
                                 onClick={() => setMode('fail')}
                             >
                                 โปรเจคที่สอบก้าวหน้าไม่ผ่าน
                             </button>
                             <button
-                                className={`px-3 py-2 rounded-3xl text-xs ${mode === 'notyet' ? 'bg-[#000066] text-white shadow-lg' : 'bg-gray-200 text-[#000066]'}`}
+                                className={`px-3 py-2 rounded-3xl text-xs transition-all duration-200
+                                    ${mode === 'notyet'
+                                        ? 'bg-[#000066] text-white shadow-lg'
+                                        : 'bg-gray-200 text-[#000066] hover:bg-yellow-400 hover:text-[#000066] hover:scale-105'
+                                    }`}
                                 onClick={() => setMode('notyet')}
                             >
                                 โปรเจคที่เอกสารไม่ครบ
                             </button>
                             <button
-                                className={`px-3 py-2 rounded-3xl text-xs ${mode === 'pendinggrade' ? 'bg-[#000066] text-white shadow-lg' : 'bg-gray-200 text-[#000066]'}`}
+                                className={`px-3 py-2 rounded-3xl text-xs transition-all duration-200
+                                    ${mode === 'pendinggrade'
+                                        ? 'bg-[#000066] text-white shadow-lg'
+                                        : 'bg-gray-200 text-[#000066] hover:bg-yellow-400 hover:text-[#000066] hover:scale-105'
+                                    }`}
                                 onClick={() => setMode('pendinggrade')}
                             >
                                 โปรเจคที่ยังไม่มีเกรด(ผ่านแล้ว)
                             </button>
                             <button
-                                className={`px-3 py-2 rounded-3xl text-xs ${mode === 'pending' ? 'bg-[#000066] text-white shadow-lg' : 'bg-gray-200 text-[#000066]'}`}
+                                className={`px-3 py-2 rounded-3xl text-xs transition-all duration-200
+                                    ${mode === 'pending'
+                                        ? 'bg-[#000066] text-white shadow-lg'
+                                        : 'bg-gray-200 text-[#000066] hover:bg-yellow-400 hover:text-[#000066] hover:scale-105'
+                                    }`}
                                 onClick={() => setMode('pending')}
                             >
                                 โปรเจคที่รอกรอกสถานะ
@@ -399,9 +423,9 @@ function Project1() {
                                     <th className="w-[42px] px-4 py-2 border text-xs break-words">รหัสนักศึกษา</th>
                                     <th className="w-[32px] px-1 py-1 border text-xs text-center break-words">แต่งตั้งที่ปรึกษา</th>
                                     <th className="w-[32px] px-1 py-1 border text-xs text-center break-words">เอกสารขอสอบ</th>
-                                    <th className="w-[24px] px-1 py-1 border text-xs text-center break-words">เกรด</th>
                                     <th className="w-[24px] px-1 py-1 border text-xs text-center break-words">ปีที่สอบ</th>
                                     <th className="w-[32px] px-1 py-1 border text-xs text-center break-words">ผ่าน/ไม่ผ่าน</th>
+                                    <th className="w-[24px] px-1 py-1 border text-xs text-center break-words">เกรด</th>
                                     <th className="w-[36px] px-1 py-1 border text-xs text-center break-words">หมายเหตุ</th>
                                 </tr>
                             </thead>
@@ -509,19 +533,6 @@ function Project1() {
                                                     String(p.docStatus) === '1' ? '✔' : '-'
                                                 )}
                                             </td>
-                                            <td className="w-[24px] px-1 py-1 border text-xs text-center">
-                                                {isEditMode ? (
-                                                    <input
-                                                        type="text"
-                                                        className="w-12 text-center border-0 border-b border-gray-400 rounded-none focus:ring-0 focus:border-blue-600 bg-transparent truncate"
-                                                        value={gradeState[p.p_ID] || ''}
-                                                        onChange={handleGradeChange(p.p_ID)}
-                                                        maxLength={2}
-                                                    />
-                                                ) : (
-                                                    p.gradePj1 || '-'
-                                                )}
-                                            </td>
                                             <td className="w-[36px] px-1 py-1 border text-xs text-center">
                                                 {isEditMode ? (
                                                     <input
@@ -545,6 +556,19 @@ function Project1() {
                                                     />
                                                 ) : (
                                                     String(p.passStatus) === '1' ? '✔' : 'ยังไม่ผ่าน'
+                                                )}
+                                            </td>
+                                            <td className="w-[24px] px-1 py-1 border text-xs text-center">
+                                                {isEditMode ? (
+                                                    <input
+                                                        type="text"
+                                                        className="w-12 text-center border-0 border-b border-gray-400 rounded-none focus:ring-0 focus:border-blue-600 bg-transparent truncate"
+                                                        value={gradeState[p.p_ID] || ''}
+                                                        onChange={handleGradeChange(p.p_ID)}
+                                                        maxLength={2}
+                                                    />
+                                                ) : (
+                                                    p.gradePj1 || '-'
                                                 )}
                                             </td>
                                             <td className="w-[36px] px-1 py-1 border text-xs text-center">

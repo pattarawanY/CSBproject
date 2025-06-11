@@ -16,7 +16,19 @@ const Project2Controller = {
 
     async getAll(req, res) {
         try {
-            const [rows] = await db.query('SELECT * FROM project2');
+            // Join กับตาราง project (หรือ project1) เพื่อดึงรายละเอียดโปรเจค
+            const [rows] = await db.query(`
+                SELECT 
+                    p2.*, 
+                    pj.p_nameEN, 
+                    pj.p_nameTH, 
+                    pj.s_name1, 
+                    pj.s_name2, 
+                    pj.s_code1, 
+                    pj.s_code2
+                FROM project2 p2
+                LEFT JOIN project pj ON p2.pj1_ID = pj.p_ID
+            `);
             res.json(rows);
         } catch (error) {
             res.status(500).json({ error: 'Internal server error' });

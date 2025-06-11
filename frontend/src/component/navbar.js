@@ -71,12 +71,6 @@ function Navbar({ search, setSearch, selectedSemester, setSelectedSemester }) {
         }
     };
 
-    // แก้ไขปีการศึกษา
-    const handleEditSemester = (id, value) => {
-        setEditSemesterId(id);
-        setEditSemesterValue(value);
-    };
-
     const handleSaveEditSemester = async (id) => {
         if (!editSemesterValue.trim()) return;
         if (!semesterPattern.test(editSemesterValue.trim())) {
@@ -130,48 +124,49 @@ function Navbar({ search, setSearch, selectedSemester, setSelectedSemester }) {
                                     onChange={e => setSearchValue(e.target.value)}
                                 />
                             ) : (
-                                // ช่องว่างขนาดเท่า input เพื่อกัน layout shift
                                 <div className="w-80 h-10" />
                             )}
                         </div>
                         {/* ดรอปดาวน์เลือกปีการศึกษา */}
-                        <div className="relative w-32" ref={semesterDropdownRef}>
-                            <div
-                                className="px-3 py-2 border rounded-3xl bg-white text-[#000066] cursor-pointer focus:outline-none text-xs hover:bg-gray-200 hover:text-[#000066] transition-all duration-300 ease-in-out flex items-center justify-between shadow-lg"
-                                onClick={() => setIsSemesterDropdownOpen(!isSemesterDropdownOpen)}
-                            >
-                                {selectedSemester || 'เลือกปีการศึกษา'}
-                                <span className={`transform transition-transform duration-300 ${isSemesterDropdownOpen ? 'rotate-180' : ''}`}>
-                                    ▼
-                                </span>
-                            </div>
-                            {isSemesterDropdownOpen && (
-                                <div className="absolute top-full mt-2 z-50 w-full bg-white border rounded-3xl shadow-lg">
-                                    <div className="max-h-[120px] overflow-y-auto pr-1">
-                                        {semesterList.map((sem, idx) => {
-                                            const isFirst = idx === 0;
-                                            const isLast = idx === semesterList.length - 1;
-                                            return (
-                                                <div
-                                                    key={sem.id}
-                                                    className={
-                                                        "px-4 py-2 hover:bg-blue-50 hover:text-blue-700 cursor-pointer text-sm text-gray-700 transition-all duration-300 " +
-                                                        (isFirst ? "rounded-t-3xl " : "") +
-                                                        (isLast ? "rounded-b-3xl " : "")
-                                                    }
-                                                    onClick={() => {
-                                                        setSelectedSemester(sem.semester);
-                                                        setIsSemesterDropdownOpen(false);
-                                                    }}
-                                                >
-                                                    {sem.semester}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
+                        {location.pathname !== "/" && (
+                            <div className="relative w-32" ref={semesterDropdownRef}>
+                                <div
+                                    className="px-3 py-2 border rounded-3xl bg-white text-[#000066] cursor-pointer focus:outline-none text-xs hover:bg-gray-200 hover:text-[#000066] transition-all duration-300 ease-in-out flex items-center justify-between shadow-lg"
+                                    onClick={() => setIsSemesterDropdownOpen(!isSemesterDropdownOpen)}
+                                >
+                                    {selectedSemester || 'เลือกปีการศึกษา'}
+                                    <span className={`transform transition-transform duration-300 ${isSemesterDropdownOpen ? 'rotate-180' : ''}`}>
+                                        ▼
+                                    </span>
                                 </div>
-                            )}
-                        </div>
+                                {isSemesterDropdownOpen && (
+                                    <div className="absolute top-full mt-2 z-50 w-full bg-white border rounded-3xl shadow-lg">
+                                        <div className="max-h-[120px] overflow-y-auto pr-1">
+                                            {semesterList.map((sem, idx) => {
+                                                const isFirst = idx === 0;
+                                                const isLast = idx === semesterList.length - 1;
+                                                return (
+                                                    <div
+                                                        key={sem.id}
+                                                        className={
+                                                            "px-4 py-2 hover:bg-blue-50 hover:text-blue-700 cursor-pointer text-sm text-gray-700 transition-all duration-300 " +
+                                                            (isFirst ? "rounded-t-3xl " : "") +
+                                                            (isLast ? "rounded-b-3xl " : "")
+                                                        }
+                                                        onClick={() => {
+                                                            setSelectedSemester(sem.semester);
+                                                            setIsSemesterDropdownOpen(false);
+                                                        }}
+                                                    >
+                                                        {sem.semester}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </nav>
