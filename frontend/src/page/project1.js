@@ -267,12 +267,12 @@ function Project1() {
 
                 if (isMentor && isDoc && isPassStatus && hasGrade) {
                     // ตรวจสอบว่ามี project2 สำหรับ pj1_ID นี้หรือยัง
-                    const checkRes = await axios.get(`http://localhost:8000/project2/${p.p_ID}`).catch(() => null);
-                    if (!checkRes || !checkRes.data) {
+                    const checkRes = await axios.get(`http://localhost:8000/project2/by-pj1/${p.pj1_ID}`).catch(() => null);
+                    if (!checkRes || !checkRes.data || Object.keys(checkRes.data).length === 0) {
                         // ถ้ายังไม่มี ให้สร้างใหม่
                         await axios.post('http://localhost:8000/project2', {
                             pj1_ID: p.pj1_ID,
-                            yaerPj2: '', // หรือใส่ค่าที่ต้องการ
+                            yaerPj2: '',
                             gradePj2: '',
                             engS1: '',
                             engS2: '',
@@ -419,170 +419,170 @@ function Project1() {
                                     filteredProjects.map((p, index) => {
                                         console.log('p.grades:', p.grades);
                                         return (
-                                        <tr key={`main-${p.p_ID}`} className="bg-white">
-                                            <td className="px-4 py-2 border text-xs text-center">{index + 1}</td>
-                                            <td className="w-[120px] px-4 py-2 border text-xs text-left break-words whitespace-normal">
-                                                {isEditMode ? (
-                                                    <>
+                                            <tr key={`main-${p.p_ID}`} className="bg-white">
+                                                <td className="px-4 py-2 border text-xs text-center">{index + 1}</td>
+                                                <td className="w-[120px] px-4 py-2 border text-xs text-left break-words whitespace-normal">
+                                                    {isEditMode ? (
+                                                        <>
+                                                            <input
+                                                                type="text"
+                                                                className="w-full text-xs border-0 border-b border-gray-400 bg-transparent"
+                                                                value={editState[p.p_ID]?.p_nameEN ?? p.p_nameEN}
+                                                                onChange={handleEditChange(p.p_ID, 'p_nameEN')}
+                                                            /><br />
+                                                            <input
+                                                                type="text"
+                                                                className="w-full text-xs border-0 border-b border-gray-400 bg-transparent"
+                                                                value={editState[p.p_ID]?.p_nameTH ?? p.p_nameTH}
+                                                                onChange={handleEditChange(p.p_ID, 'p_nameTH')}
+                                                            />
+                                                        </>
+                                                    ) : (
+                                                        <div className="break-words whitespace-normal text-black">
+                                                            {p.p_nameEN}<br />
+                                                            {p.p_nameTH}
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td className="w-[80px] px-4 py-2 border text-xs text-left break-words whitespace-normal">
+                                                    {isEditMode ? (
+                                                        <>
+                                                            <input
+                                                                type="text"
+                                                                className="w-full text-xs border-0 border-b border-gray-400 bg-transparent"
+                                                                value={editState[p.p_ID]?.s_name1 ?? p.s_name1}
+                                                                onChange={handleEditChange(p.p_ID, 's_name1')}
+                                                            /><br />
+                                                            <input
+                                                                type="text"
+                                                                className="w-full text-xs border-0 border-b border-gray-400 bg-transparent"
+                                                                value={editState[p.p_ID]?.s_name2 ?? p.s_name2}
+                                                                onChange={handleEditChange(p.p_ID, 's_name2')}
+                                                            />
+                                                        </>
+                                                    ) : (
+                                                        <div className="break-words whitespace-normal">
+                                                            {p.s_name1}<br />
+                                                            {p.s_name2}
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-2 border text-xs text-center">
+                                                    {isEditMode ? (
+                                                        <>
+                                                            <input
+                                                                type="text"
+                                                                className="w-full text-xs border-0 border-b border-gray-400 bg-transparent"
+                                                                value={editState[p.p_ID]?.s_code1 ?? p.s_code1}
+                                                                onChange={handleEditChange(p.p_ID, 's_code1')}
+                                                            /><br />
+                                                            <input
+                                                                type="text"
+                                                                className="w-full text-xs border-0 border-b border-gray-400 bg-transparent"
+                                                                value={editState[p.p_ID]?.s_code2 ?? p.s_code2}
+                                                                onChange={handleEditChange(p.p_ID, 's_code2')}
+                                                            />
+                                                        </>
+                                                    ) : (
+                                                        <div>
+                                                            <div>{p.s_code1}</div>
+                                                            <div>{p.s_code2}</div>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td className="w-[32px] px-1 py-1 border text-xs text-center">
+                                                    {isEditMode ? (
                                                         <input
-                                                            type="text"
-                                                            className="w-full text-xs border-0 border-b border-gray-400 bg-transparent"
-                                                            value={editState[p.p_ID]?.p_nameEN ?? p.p_nameEN}
-                                                            onChange={handleEditChange(p.p_ID, 'p_nameEN')}
-                                                        /><br />
-                                                        <input
-                                                            type="text"
-                                                            className="w-full text-xs border-0 border-b border-gray-400 bg-transparent"
-                                                            value={editState[p.p_ID]?.p_nameTH ?? p.p_nameTH}
-                                                            onChange={handleEditChange(p.p_ID, 'p_nameTH')}
+                                                            type="checkbox"
+                                                            checked={checkboxState[p.p_ID]?.mentorStatus || false}
+                                                            onChange={handleCheckboxChange(p.p_ID, 'mentorStatus')}
+                                                            disabled={!isEditMode}
                                                         />
-                                                    </>
-                                                ) : (
-                                                    <div className="break-words whitespace-normal text-black">
-                                                        {p.p_nameEN}<br />
-                                                        {p.p_nameTH}
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="w-[80px] px-4 py-2 border text-xs text-left break-words whitespace-normal">
-                                                {isEditMode ? (
-                                                    <>
+                                                    ) : (
+                                                        String(p.mentorStatus) === '1' ? '✔' : '-'
+                                                    )}
+                                                </td>
+                                                <td className="w-[32px] px-1 py-1 border text-xs text-center">
+                                                    {isEditMode ? (
                                                         <input
-                                                            type="text"
-                                                            className="w-full text-xs border-0 border-b border-gray-400 bg-transparent"
-                                                            value={editState[p.p_ID]?.s_name1 ?? p.s_name1}
-                                                            onChange={handleEditChange(p.p_ID, 's_name1')}
-                                                        /><br />
-                                                        <input
-                                                            type="text"
-                                                            className="w-full text-xs border-0 border-b border-gray-400 bg-transparent"
-                                                            value={editState[p.p_ID]?.s_name2 ?? p.s_name2}
-                                                            onChange={handleEditChange(p.p_ID, 's_name2')}
+                                                            type="checkbox"
+                                                            checked={checkboxState[p.p_ID]?.docStatus || false}
+                                                            onChange={handleCheckboxChange(p.p_ID, 'docStatus')}
+                                                            disabled={!isEditMode}
                                                         />
-                                                    </>
-                                                ) : (
-                                                    <div className="break-words whitespace-normal">
-                                                        {p.s_name1}<br />
-                                                        {p.s_name2}
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="px-4 py-2 border text-xs text-center">
-                                                {isEditMode ? (
-                                                    <>
+                                                    ) : (
+                                                        String(p.docStatus) === '1' ? '✔' : '-'
+                                                    )}
+                                                </td>
+                                                <td className="w-[36px] px-1 py-1 border text-xs text-center">
+                                                    {isEditMode ? (
                                                         <input
                                                             type="text"
-                                                            className="w-full text-xs border-0 border-b border-gray-400 bg-transparent"
-                                                            value={editState[p.p_ID]?.s_code1 ?? p.s_code1}
-                                                            onChange={handleEditChange(p.p_ID, 's_code1')}
-                                                        /><br />
-                                                        <input
-                                                            type="text"
-                                                            className="w-full text-xs border-0 border-b border-gray-400 bg-transparent"
-                                                            value={editState[p.p_ID]?.s_code2 ?? p.s_code2}
-                                                            onChange={handleEditChange(p.p_ID, 's_code2')}
+                                                            className="w-20 text-xs border-0 border-b border-gray-400 rounded-none focus:ring-0 focus:border-blue-600 bg-transparent truncate"
+                                                            value={yearState[p.p_ID] || ''}
+                                                            onChange={handleYearChange(p.p_ID)}
+                                                            maxLength={10}
                                                         />
-                                                    </>
-                                                ) : (
-                                                    <div>
-                                                        <div>{p.s_code1}</div>
-                                                        <div>{p.s_code2}</div>
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="w-[32px] px-1 py-1 border text-xs text-center">
-                                                {isEditMode ? (
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={checkboxState[p.p_ID]?.mentorStatus || false}
-                                                        onChange={handleCheckboxChange(p.p_ID, 'mentorStatus')}
-                                                        disabled={!isEditMode}
-                                                    />
-                                                ) : (
-                                                    String(p.mentorStatus) === '1' ? '✔' : '-'
-                                                )}
-                                            </td>
-                                            <td className="w-[32px] px-1 py-1 border text-xs text-center">
-                                                {isEditMode ? (
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={checkboxState[p.p_ID]?.docStatus || false}
-                                                        onChange={handleCheckboxChange(p.p_ID, 'docStatus')}
-                                                        disabled={!isEditMode}
-                                                    />
-                                                ) : (
-                                                    String(p.docStatus) === '1' ? '✔' : '-'
-                                                )}
-                                            </td>
-                                            <td className="w-[36px] px-1 py-1 border text-xs text-center">
-                                                {isEditMode ? (
-                                                    <input
-                                                        type="text"
-                                                        className="w-20 text-xs border-0 border-b border-gray-400 rounded-none focus:ring-0 focus:border-blue-600 bg-transparent truncate"
-                                                        value={yearState[p.p_ID] || ''}
-                                                        onChange={handleYearChange(p.p_ID)}
-                                                        maxLength={10}
-                                                    />
-                                                ) : (
-                                                    p.yearPj1 || '-'
-                                                )}
-                                            </td>
-                                            <td className="w-[32px] px-1 py-1 border text-xs text-center">
-                                                {isEditMode ? (
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={passState[p.p_ID] || false}
-                                                        onChange={handlePassChange(p.p_ID)}
-                                                        disabled={!isEditMode}
-                                                    />
-                                                ) : (
-                                                    String(p.passStatus) === '1' ? '✔' : 'ยังไม่ผ่าน'
-                                                )}
-                                            </td>
-                                            <td className="w-[48px] px-1 py-1 border text-xs text-center">
-                                                {isEditMode ? (
-                                                    <>
+                                                    ) : (
+                                                        p.yearPj1 || '-'
+                                                    )}
+                                                </td>
+                                                <td className="w-[32px] px-1 py-1 border text-xs text-center">
+                                                    {isEditMode ? (
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={passState[p.p_ID] || false}
+                                                            onChange={handlePassChange(p.p_ID)}
+                                                            disabled={!isEditMode}
+                                                        />
+                                                    ) : (
+                                                        String(p.passStatus) === '1' ? '✔' : 'ยังไม่ผ่าน'
+                                                    )}
+                                                </td>
+                                                <td className="w-[48px] px-1 py-1 border text-xs text-center">
+                                                    {isEditMode ? (
+                                                        <>
+                                                            <input
+                                                                type="text"
+                                                                value={gradesState[p.p_ID]?.grade1 || ''}
+                                                                onChange={handleGradeChange(p.p_ID, 'grade1')}
+                                                                maxLength={2}
+                                                                className="w-full text-xs border-0 border-b border-gray-400 bg-transparent text-center mb-1"
+                                                                style={{ marginBottom: 2 }}
+                                                            />
+                                                            <br />
+                                                            <input
+                                                                type="text"
+                                                                value={gradesState[p.p_ID]?.grade2 || ''}
+                                                                onChange={handleGradeChange(p.p_ID, 'grade2')}
+                                                                maxLength={2}
+                                                                className="w-full text-xs border-0 border-b border-gray-400 bg-transparent text-center"
+                                                            />
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <span>{p.grades?.grade1 || '-'}</span>
+                                                            <br />
+                                                            <span>{p.grades?.grade2 || '-'}</span>
+                                                        </>
+                                                    )}
+                                                </td>
+                                                <td className="w-[36px] px-1 py-1 border text-xs text-center">
+                                                    {isEditMode ? (
                                                         <input
                                                             type="text"
-                                                            value={gradesState[p.p_ID]?.grade1 || ''}
-                                                            onChange={handleGradeChange(p.p_ID, 'grade1')}
-                                                            maxLength={2}
-                                                            className="w-full text-xs border-0 border-b border-gray-400 bg-transparent text-center mb-1"
-                                                            style={{ marginBottom: 2 }}
+                                                            className="w-20 text-xs border-0 border-b border-gray-400 rounded-none focus:ring-0 focus:border-blue-600 bg-transparent truncate"
+                                                            value={remarkState[p.p_ID] || ''}
+                                                            onChange={handleRemarkChange(p.p_ID)}
+                                                            maxLength={30}
                                                         />
-                                                        <br />
-                                                        <input
-                                                            type="text"
-                                                            value={gradesState[p.p_ID]?.grade2 || ''}
-                                                            onChange={handleGradeChange(p.p_ID, 'grade2')}
-                                                            maxLength={2}
-                                                            className="w-full text-xs border-0 border-b border-gray-400 bg-transparent text-center"
-                                                        />
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <span>{p.grades?.grade1 || '-'}</span>
-                                                        <br />
-                                                        <span>{p.grades?.grade2 || '-'}</span>
-                                                    </>
-                                                )}
-                                            </td>
-                                            <td className="w-[36px] px-1 py-1 border text-xs text-center">
-                                                {isEditMode ? (
-                                                    <input
-                                                        type="text"
-                                                        className="w-20 text-xs border-0 border-b border-gray-400 rounded-none focus:ring-0 focus:border-blue-600 bg-transparent truncate"
-                                                        value={remarkState[p.p_ID] || ''}
-                                                        onChange={handleRemarkChange(p.p_ID)}
-                                                        maxLength={30}
-                                                    />
-                                                ) : (
-                                                    p.note || '-'
-                                                )}
-                                            </td>
-                                        </tr>
+                                                    ) : (
+                                                        p.note || '-'
+                                                    )}
+                                                </td>
+                                            </tr>
                                         );
-})
+                                    })
                                 )}
                             </tbody>
                         </table>

@@ -81,6 +81,18 @@ const Project2Controller = {
         }
     },
 
+    async getByPj1Id(req, res) {
+        const { pj1_ID } = req.params;
+        try {
+            const [rows] = await db.query('SELECT * FROM project2 WHERE pj1_ID = ?', [pj1_ID]);
+            if (rows.length === 0) {
+                return res.status(404).json({ error: 'Not found' });
+            }
+            res.json(rows[0]);
+        } catch (error) {
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    }
 }
 
 module.exports = Project2Controller;
