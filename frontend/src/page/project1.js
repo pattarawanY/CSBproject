@@ -416,7 +416,9 @@ function Project1() {
                                         </td>
                                     </tr>
                                 ) : (
-                                    filteredProjects.map((p, index) => (
+                                    filteredProjects.map((p, index) => {
+                                        console.log('p.grades:', p.grades);
+                                        return (
                                         <tr key={`main-${p.p_ID}`} className="bg-white">
                                             <td className="px-4 py-2 border text-xs text-center">{index + 1}</td>
                                             <td className="w-[120px] px-4 py-2 border text-xs text-left break-words whitespace-normal">
@@ -579,7 +581,8 @@ function Project1() {
                                                 )}
                                             </td>
                                         </tr>
-                                    ))
+                                        );
+})
                                 )}
                             </tbody>
                         </table>

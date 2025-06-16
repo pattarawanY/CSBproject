@@ -3,11 +3,11 @@ const db = require('../db');
 const Project1Controller = {
     async getByProjectId(req, res) {
         const { p_ID } = req.params;
-        console.log('[DEBUG] p_ID received from params:', p_ID);
+        //console.log('[DEBUG] p_ID received from params:', p_ID);
 
         try {
             const [rows] = await db.query('SELECT * FROM project1 WHERE p_ID = ?', [p_ID]);
-            console.log('[DEBUG] query result:', rows);
+            //console.log('[DEBUG] query result:', rows);
 
             if (rows.length === 0) {
                 return res.status(404).json({ error: 'Not found' });
@@ -38,7 +38,7 @@ const Project1Controller = {
             // แปลง grades จาก string เป็น object
             const parsedRows = rows.map(row => ({
                 ...row,
-                grades: row.grades ? JSON.parse(row.grades) : { grade1: '', grade2: '' }
+                grades: row.gradePj1 ? JSON.parse(row.gradePj1) : { grade1: '', grade2: '' }
             }));
 
             res.json(parsedRows);
