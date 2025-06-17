@@ -40,7 +40,7 @@ const Project2Controller = {
         // รับข้อมูลจาก req.body
         const {
             pj1_ID,
-            yaerPj2,
+            yearPj2,
             gradePj2,
             engS1,
             engS2,
@@ -55,9 +55,9 @@ const Project2Controller = {
             // เพิ่มข้อมูลลงใน project2
             const [result] = await db.query(
                 `INSERT INTO project2 
-                (pj1_ID, yaerPj2, gradePj2, engS1, engS2, test30, docStatus2, gradeSend1, gradeSend2, createdDate, modifiedDate, note)
+                (pj1_ID, yearPj2, gradePj2, engS1, engS2, test30, docStatus2, gradeSend1, gradeSend2, createdDate, modifiedDate, note)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), ?)`,
-                [pj1_ID, yaerPj2, gradePj2, engS1, engS2, test30, docStatus2, gradeSend1, gradeSend2, note]
+                [pj1_ID, yearPj2, gradePj2, engS1, engS2, test30, docStatus2, gradeSend1, gradeSend2, note]
             );
             res.status(201).json({ pj2_ID: result.insertId, ...req.body });
         } catch (error) {
@@ -66,17 +66,22 @@ const Project2Controller = {
     },
 
     async update(req, res) {
-        const { id } = req.params;
+        const { pj2_ID } = req.params;
         const {
-            p_nameEN, p_nameTH, s_name1, s_name2, s_code1, s_code2, modifiedDate
+            yearPj2, gradePj2, engS1, engS2, test30, docStatus2, passStatus2,
+            gradeSend1, gradeSend2, note, modifiedDate
         } = req.body;
+
         try {
             await db.query(
-                `UPDATE project SET p_nameEN=?, p_nameTH=?, s_name1=?, s_name2=?, s_code1=?, s_code2=?, modifiedDate=? WHERE p_ID=?`,
-                [p_nameEN, p_nameTH, s_name1, s_name2, s_code1, s_code2, modifiedDate, id]
+                `UPDATE project2 
+             SET yearPj2=?, gradePj2=?, engS1=?, engS2=?, test30=?, docStatus2=?, passStatus2=?, gradeSend1=?, gradeSend2=?, note=?, modifiedDate=? 
+             WHERE pj2_ID=?`,
+                [yearPj2, gradePj2, engS1, engS2, test30, docStatus2, passStatus2, gradeSend1, gradeSend2, note, modifiedDate, pj2_ID]
             );
             res.json({ success: true });
         } catch (error) {
+            console.error("Update Error:", error); // เพิ่ม log
             res.status(500).json({ error: 'Internal server error' });
         }
     },

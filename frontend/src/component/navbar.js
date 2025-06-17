@@ -129,7 +129,7 @@ function Navbar({ search, setSearch, selectedSemester, setSelectedSemester }) {
                         </div>
                         {/* ดรอปดาวน์เลือกปีการศึกษา */}
                         {location.pathname !== "/" && (
-                            <div className="relative w-32" ref={semesterDropdownRef}>
+                            <div className="relative w-36" ref={semesterDropdownRef}>
                                 <div
                                     className="px-3 py-2 border rounded-3xl bg-white text-[#000066] cursor-pointer focus:outline-none text-xs hover:bg-gray-200 hover:text-[#000066] transition-all duration-300 ease-in-out flex items-center justify-between shadow-lg"
                                     onClick={() => setIsSemesterDropdownOpen(!isSemesterDropdownOpen)}
@@ -150,8 +150,8 @@ function Navbar({ search, setSearch, selectedSemester, setSelectedSemester }) {
                                                         key={sem.id}
                                                         className={
                                                             "px-4 py-2 hover:bg-blue-50 hover:text-blue-700 cursor-pointer text-sm text-gray-700 transition-all duration-300 " +
-                                                            (isFirst ? "rounded-t-3xl " : "") +
-                                                            (isLast ? "rounded-b-3xl " : "")
+                                                            (isFirst ? "rounded-tl-3xl " : "") +
+                                                            (isLast ? "rounded-bl-3xl " : "")
                                                         }
                                                         onClick={() => {
                                                             setSelectedSemester(sem.semester);
@@ -228,8 +228,18 @@ function Navbar({ search, setSearch, selectedSemester, setSelectedSemester }) {
             </div>
             {/* Modal สำหรับเพิ่ม/ลบ/แก้ไขปีการศึกษา */}
             {showModal && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-                    <div className="bg-white rounded-2xl p-5 max-w-md min-w-[250px] mx-auto relative overflow-auto transition-all duration-300">
+                <div
+                    className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50"
+                    onClick={e => {
+                        if (e.target === e.currentTarget) {
+                            setShowModal(false);
+                            setNewSemester('');
+                            setEditSemesterId(null);
+                            setIsEditMode(false);
+                        }
+                    }}
+                >
+                    <div className="bg-white rounded-2xl p-5 max-w-md min-w-[250px] mx-auto relative transition-all duration-300 max-h-[50vh] overflow-y-auto">
                         <button
                             className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-full bg-red-600 hover:bg-red-700 text-white text-md font-bold shadow transition z-10"
                             onClick={() => {
@@ -243,6 +253,7 @@ function Navbar({ search, setSearch, selectedSemester, setSelectedSemester }) {
                             ✕
                         </button>
                         <h3 className="text-md font-semibold text-black mb-2">จัดการปีการศึกษา</h3>
+
                         <div className="flex items-center gap-2 mb-2">
                             {!showAddInput ? (
                                 <button
@@ -283,6 +294,7 @@ function Navbar({ search, setSearch, selectedSemester, setSelectedSemester }) {
                                 </>
                             )}
                         </div>
+
                         <button
                             className="px-3 py-1 mb-4 mt-2 bg-yellow-500 text-white text-sm rounded-3xl shadow-lg hover:bg-yellow-600 transition-all duration-300 ease-in-out ml-auto"
                             onClick={() => {
@@ -293,7 +305,9 @@ function Navbar({ search, setSearch, selectedSemester, setSelectedSemester }) {
                         >
                             {isEditMode ? "ปิดโหมดแก้ไข" : "แก้ไข"}
                         </button>
-                        <div className="max-h-96 overflow-y-auto pr-1">
+
+                        {/* ส่วนที่ scroll ได้เมื่อรายการเยอะ */}
+                        <div className="max-h-[30vh] overflow-y-auto pr-1">
                             {semesterList.map(sem => (
                                 <div
                                     key={sem.id}

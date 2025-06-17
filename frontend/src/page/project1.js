@@ -272,7 +272,7 @@ function Project1() {
                         // ถ้ายังไม่มี ให้สร้างใหม่
                         await axios.post('http://localhost:8000/project2', {
                             pj1_ID: p.pj1_ID,
-                            yaerPj2: '',
+                            yearPj2: '',
                             gradePj2: '',
                             engS1: '',
                             engS2: '',
