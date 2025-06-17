@@ -2,6 +2,53 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from '../component/navbar';
 
+function filterProjects(projects, mode) {
+    return projects.filter(p => {
+        // Helper สำหรับเช็คช่องที่ต้องมีข้อมูล
+        const hasAllMainFields = [
+            p.p_nameTH, p.p_nameEN,
+            p.s_name1, p.s_code1,
+            (p.s_name2 || 'ok'), (p.s_code2 || 'ok'),
+            p.yearPj2
+        ].every(val => val !== undefined && val !== null && String(val).trim() !== '');
+
+        // Helper สำหรับเช็ค Eng
+        const engCount = [p.engS1, p.engS2].filter(e => e === 1).length;
+
+        // Helper สำหรับเช็คเกรด
+        let gradeObj = { grade1: '', grade2: '' };
+        try {
+            if (p.gradePj2) gradeObj = JSON.parse(p.gradePj2);
+        } catch { }
+        const allGradeFilled = gradeObj.grade1 && gradeObj.grade2;
+        const isFailGrade = ['F', 'FE', 'IP', 'f', 'fe', 'ip'].includes((gradeObj.grade1 || '').toUpperCase()) ||
+            ['F', 'FE', 'IP', 'f', 'fe', 'ip'].includes((gradeObj.grade2 || '').toUpperCase());
+
+        if (mode === 'pass') {
+            return hasAllMainFields && p.passStatus2 === 1 && allGradeFilled && !isFailGrade;
+        }
+        if (mode === 'fail') {
+            return hasAllMainFields && p.passStatus2 === 0 && allGradeFilled && isFailGrade;
+        }
+        if (mode === 'eng') {
+            return hasAllMainFields && engCount === 1;
+        }
+        if (mode === 'noTest') {
+            return hasAllMainFields && p.test30 !== 1;
+        }
+        if (mode === 'pendinggrade') {
+            return hasAllMainFields && (!p.gradeSend1 || !p.gradeSend2);
+        }
+        if (mode === 'pending') {
+            return (
+                [p.p_nameTH, p.p_nameEN, p.s_name1, p.s_code1].some(val => val && String(val).trim() !== '') &&
+                !p.yearPj2 && !p.engS1 && !p.engS2 && !p.test30 && !p.docStatus2 && !p.passStatus2 && !p.gradeSend1 && !p.gradeSend2
+            );
+        }
+        return true;
+    });
+}
+
 function Project2() {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -213,6 +260,8 @@ function Project2() {
         }
     };
 
+    const displayProjects = filterProjects(filteredProjects, mode);
+
     return (
         <div className="flex flex-col h-screen">
             <Navbar search={search} setSearch={setSearch} />
@@ -223,61 +272,78 @@ function Project2() {
                         <div className="flex gap-2 mb-4 flex-wrap">
                             <button
                                 className={`px-3 py-2 rounded-3xl text-xs transition-all duration-200
-                                    ${mode === 'all'
+                  ${mode === 'all'
                                         ? 'bg-[#000066] text-white shadow-lg'
                                         : 'bg-gray-200 text-[#000066] hover:bg-yellow-400 hover:text-[#000066] hover:scale-105'
                                     }`}
                                 onClick={() => setMode('all')}
+                                type="button"
                             >
-                                แสดงทั้งหมด
+                                ทั้งหมด
                             </button>
                             <button
                                 className={`px-3 py-2 rounded-3xl text-xs transition-all duration-200
-                                    ${mode === 'pass'
+                  ${mode === 'pass'
                                         ? 'bg-[#000066] text-white shadow-lg'
                                         : 'bg-gray-200 text-[#000066] hover:bg-yellow-400 hover:text-[#000066] hover:scale-105'
                                     }`}
                                 onClick={() => setMode('pass')}
+                                type="button"
                             >
                                 โปรเจคที่สอบป้องกันผ่านแล้ว
                             </button>
                             <button
                                 className={`px-3 py-2 rounded-3xl text-xs transition-all duration-200
-                                    ${mode === 'fail'
+                  ${mode === 'fail'
                                         ? 'bg-[#000066] text-white shadow-lg'
                                         : 'bg-gray-200 text-[#000066] hover:bg-yellow-400 hover:text-[#000066] hover:scale-105'
                                     }`}
                                 onClick={() => setMode('fail')}
+                                type="button"
                             >
                                 โปรเจคที่สอบป้องกันไม่ผ่าน
                             </button>
                             <button
                                 className={`px-3 py-2 rounded-3xl text-xs transition-all duration-200
-                                    ${mode === 'notyet'
+                  ${mode === 'eng'
                                         ? 'bg-[#000066] text-white shadow-lg'
                                         : 'bg-gray-200 text-[#000066] hover:bg-yellow-400 hover:text-[#000066] hover:scale-105'
                                     }`}
-                                onClick={() => setMode('notyet')}
+                                onClick={() => setMode('eng')}
+                                type="button"
                             >
-                                โปรเจคที่เอกสารไม่ครบ
+                                โปรเจคที่ผลEngไม่ครบ
                             </button>
                             <button
                                 className={`px-3 py-2 rounded-3xl text-xs transition-all duration-200
-                                    ${mode === 'pendinggrade'
+                  ${mode === 'noTest'
+                                        ? 'bg-[#000066] text-white shadow-lg'
+                                        : 'bg-gray-200 text-[#000066] hover:bg-yellow-400 hover:text-[#000066] hover:scale-105'
+                                    }`}
+                                onClick={() => setMode('noTest')}
+                                type="button"
+                            >
+                                โปรเจคที่ยังไม่ทดลอง30วัน
+                            </button>
+                            <button
+                                className={`px-3 py-2 rounded-3xl text-xs transition-all duration-200
+                  ${mode === 'pendinggrade'
                                         ? 'bg-[#000066] text-white shadow-lg'
                                         : 'bg-gray-200 text-[#000066] hover:bg-yellow-400 hover:text-[#000066] hover:scale-105'
                                     }`}
                                 onClick={() => setMode('pendinggrade')}
+                                type="button"
                             >
-                                โปรเจคที่ยังไม่มีเกรด(ผ่านแล้ว)
+                                โปรเจคที่ยังไม่ส่งเกรด
                             </button>
                             <button
                                 className={`px-3 py-2 rounded-3xl text-xs transition-all duration-200
-                                    ${mode === 'pending'
+                  ${mode === 'pending'
                                         ? 'bg-[#000066] text-white shadow-lg'
                                         : 'bg-gray-200 text-[#000066] hover:bg-yellow-400 hover:text-[#000066] hover:scale-105'
                                     }`}
                                 onClick={() => setMode('pending')}
+                                type="button"
                             >
                                 โปรเจคที่รอกรอกสถานะ
                             </button>
@@ -331,7 +397,7 @@ function Project2() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredProjects.length === 0 ? (
+                                {displayProjects.length === 0 ? (
                                     <tr>
                                         <td colSpan={13} className="text-center py-6 text-gray-500 text-sm">ไม่มีข้อมูล</td>
                                     </tr>
