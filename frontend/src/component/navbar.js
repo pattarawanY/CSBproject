@@ -174,7 +174,7 @@ function Navbar({ search, setSearch, selectedSemester, setSelectedSemester }) {
                     <div className='flex items-center w-full max-w-lg'>
                         {/* ช่องค้นหา */}
                         <div className="flex-1 flex justify-center min-w-[320px]">
-                            {location.pathname !== "/" ? (
+                            {(location.pathname !== "/" && location.pathname !== "/profile") ? (
                                 <input
                                     type="text"
                                     className="border border-white bg-transparent px-3 py-2 rounded-full w-80 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#000066] placeholder:text-xs"
@@ -187,7 +187,7 @@ function Navbar({ search, setSearch, selectedSemester, setSelectedSemester }) {
                             )}
                         </div>
                         {/* ดรอปดาวน์เลือกปีการศึกษา */}
-                        {location.pathname !== "/" && (
+                        {location.pathname !== "/" && location.pathname !== "/profile" && (
                             <div className="relative w-36" ref={semesterDropdownRef}>
                                 <div
                                     className="px-3 py-2 border rounded-3xl bg-white text-[#000066] cursor-pointer focus:outline-none text-xs hover:bg-gray-200 hover:text-[#000066] transition-all duration-300 ease-in-out flex items-center justify-between shadow-lg"
@@ -301,6 +301,7 @@ function Navbar({ search, setSearch, selectedSemester, setSelectedSemester }) {
                             setNewSemester('');
                             setEditSemesterId(null);
                             setIsEditMode(false);
+                            setShowAddInput(false);
                         }
                     }}
                 >
@@ -443,6 +444,7 @@ function Navbar({ search, setSearch, selectedSemester, setSelectedSemester }) {
                             setNewTeacher('');
                             setEditTeacherId(null);
                             setIsTeacherEditMode(false);
+                            setShowAddTeacherInput(false);
                         }
                     }}
                 >
