@@ -2,57 +2,10 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from '../component/navbar';
 
-function filterProjects(projects, mode) {
-    return projects.filter(p => {
-        // Helper สำหรับเช็คช่องที่ต้องมีข้อมูล
-        const hasAllMainFields = [
-            p.p_nameTH, p.p_nameEN,
-            p.s_name1, p.s_code1,
-            (p.s_name2 || 'ok'), (p.s_code2 || 'ok'),
-            p.yearPj2
-        ].every(val => val !== undefined && val !== null && String(val).trim() !== '');
-
-        // Helper สำหรับเช็ค Eng
-        const engCount = [p.engS1, p.engS2].filter(e => e === 1).length;
-
-        // Helper สำหรับเช็คเกรด
-        let gradeObj = { grade1: '', grade2: '' };
-        try {
-            if (p.gradePj2) gradeObj = JSON.parse(p.gradePj2);
-        } catch { }
-        const allGradeFilled = gradeObj.grade1 && gradeObj.grade2;
-        const isFailGrade = ['F', 'FE', 'IP', 'f', 'fe', 'ip'].includes((gradeObj.grade1 || '').toUpperCase()) ||
-            ['F', 'FE', 'IP', 'f', 'fe', 'ip'].includes((gradeObj.grade2 || '').toUpperCase());
-
-        if (mode === 'pass') {
-            return hasAllMainFields && p.passStatus2 === 1 && allGradeFilled && !isFailGrade;
-        }
-        if (mode === 'fail') {
-            return hasAllMainFields && p.passStatus2 === 0 && allGradeFilled && isFailGrade;
-        }
-        if (mode === 'eng') {
-            return hasAllMainFields && engCount === 1;
-        }
-        if (mode === 'noTest') {
-            return hasAllMainFields && p.test30 !== 1;
-        }
-        if (mode === 'pendinggrade') {
-            return hasAllMainFields && (!p.gradeSend1 || !p.gradeSend2);
-        }
-        if (mode === 'pending') {
-            return (
-                [p.p_nameTH, p.p_nameEN, p.s_name1, p.s_code1].some(val => val && String(val).trim() !== '') &&
-                !p.yearPj2 && !p.engS1 && !p.engS2 && !p.test30 && !p.docStatus2 && !p.passStatus2 && !p.gradeSend1 && !p.gradeSend2
-            );
-        }
-        return true;
-    });
-}
-
 function Project2() {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [project1Data, setProject1Data] = useState({});
+    const [project2Data, setProject2Data] = useState({});
     const [mode, setMode] = useState('all');
     const [checkboxState, setCheckboxState] = useState({});
     const [isEditMode, setIsEditMode] = useState(false);
@@ -66,12 +19,6 @@ function Project2() {
         const newEditState = {};
         filteredProjects.forEach(p => {
             newEditState[p.pj2_ID] = {
-                p_nameEN: p.p_nameEN,
-                p_nameTH: p.p_nameTH,
-                s_name1: p.s_name1,
-                s_name2: p.s_name2,
-                s_code1: p.s_code1,
-                s_code2: p.s_code2,
                 yearPj2: p.yearPj2,
                 gradePj2: p.gradePj2,
                 engS1: !!p.engS1,
@@ -81,7 +28,6 @@ function Project2() {
                 passStatus2: !!p.passStatus2,
                 gradeSend1: !!p.gradeSend1,
                 gradeSend2: !!p.gradeSend2,
-                note: p.note,
             };
         });
         setEditState(newEditState);
@@ -93,7 +39,6 @@ function Project2() {
         const fetchProject2 = async () => {
             try {
                 const res = await axios.get('http://localhost:8000/project2/');
-                console.log(res.data); // ต้องเห็น p_ID อยู่ในแต่ละ object
                 setProjects(res.data);
             } catch (error) {
                 console.error('Error fetching project2:', error);
@@ -105,86 +50,172 @@ function Project2() {
     }, []);
 
     useEffect(() => {
-        if (Object.keys(project1Data).length > 0) {
+        if (Object.keys(project2Data).length > 0) {
             const initial = {};
             projects.forEach(p => {
-                const pj1 = project1Data[p.p_ID];
-                initial[p.p_ID] = pj1 ? pj1.yearPj1 || '' : '';
+                const pj2 = project2Data[p.p_ID];
+                initial[p.p_ID] = pj2 ? pj2.yearPj2 || '' : '';
             });
             setYearState(initial);
         }
-    }, [project1Data, projects]);
+    }, [project2Data, projects]);
 
     useEffect(() => {
-        if (Object.keys(project1Data).length > 0) {
+        if (Object.keys(project2Data).length > 0) {
             const initial = {};
             projects.forEach(p => {
-                const pj1 = project1Data[p.p_ID];
-                initial[p.p_ID] = pj1 ? pj1.remark || '' : '';
+                const pj2 = project2Data[p.p_ID];
+                initial[p.p_ID] = pj2 ? pj2.note || '' : '';
             });
             setRemarkState(initial);
         }
-    }, [project1Data, projects]);
+    }, [project2Data, projects]);
 
     useEffect(() => {
-        if (Object.keys(project1Data).length > 0) {
+        if (Object.keys(project2Data).length > 0) {
             const initial = {};
             projects.forEach(p => {
-                const pj1 = project1Data[p.p_ID];
+                const pj2 = project2Data[p.p_ID];
                 initial[p.p_ID] = {
-                    mentorStatus: pj1 ? String(pj1.mentorStatus ?? '0') === '1' : false,
-                    docStatus: pj1 ? String(pj1.docStatus ?? '0') === '1' : false,
+                    engS1: pj2 ? String(pj2.engS1 ?? '0') === '1' : false,
+                    engS2: pj2 ? String(pj2.engS2 ?? '0') === '1' : false,
+                    test30: pj2 ? String(pj2.test30 ?? '0') === '1' : false,
+                    passStatus2: pj2 ? String(pj2.passStatus2 ?? '0') === '1' : false,
+                    docStatus2: pj2 ? String(pj2.docStatus2 ?? '0') === '1' : false,
+                    gradeSend1: pj2 ? String(pj2.gradeSend1 ?? '0') === '1' : false,
+                    gradeSend2: pj2 ? String(pj2.gradeSend2 ?? '0') === '1' : false,
                 };
             });
             setCheckboxState(initial);
         }
-    }, [project1Data, projects]);
+    }, [project2Data, projects]);
 
     useEffect(() => {
-        if (Object.keys(project1Data).length > 0) {
+        if (Object.keys(project2Data).length > 0) {
             const initial = {};
             projects.forEach(p => {
-                const pj1 = project1Data[p.p_ID];
-                initial[p.p_ID] = pj1 ? pj1.gradePj1 || '' : '';
+                const pj2 = project2Data[p.p_ID];
+                initial[p.p_ID] = pj2 ? pj2.gradePj2 || '' : '';
             });
             setGradeState(initial);
         }
-    }, [project1Data, projects]);
+    }, [project2Data, projects]);
 
     useEffect(() => {
-        if (Object.keys(project1Data).length > 0) {
+        if (Object.keys(project2Data).length > 0) {
             const initial = {};
             projects.forEach(p => {
-                const pj1 = project1Data[p.p_ID];
-                initial[p.p_ID] = pj1 ? String(pj1.passStatus ?? '0') === '1' : false;
+                const pj2 = project2Data[p.p_ID];
+                initial[p.p_ID] = pj2 ? String(pj2.passStatus2 ?? '0') === '1' : false;
             });
             setPassState(initial);
         }
-    }, [project1Data, projects]);
+    }, [project2Data, projects]);
 
-    const filteredProjects = projects.map(p => ({
-        p_ID: p.p_ID,
-        pj1_ID: p.pj1_ID,
-        pj2_ID: p.pj2_ID,
-        yearPj2: p.yearPj2,
-        gradePj2: p.gradePj2,
-        engS1: p.engS1,
-        engS2: p.engS2,
-        test30: p.test30,
-        docStatus2: p.docStatus2,
-        gradeSend1: p.gradeSend1,
-        gradeSend2: p.gradeSend2,
-        createdDate: p.createdDate,
-        modifiedDate: p.modifiedDate,
-        note: p.note,
-        p_nameEN: p.p_nameEN,
-        p_nameTH: p.p_nameTH,
-        s_name1: p.s_name1,
-        s_name2: p.s_name2,
-        s_code1: p.s_code1,
-        s_code2: p.s_code2,
-        passStatus2: p.passStatus2,
-    }));
+    const isFilled = v => v !== null && v !== undefined && !(typeof v === 'string' && v.trim() === '') && v !== '-';
+
+    const isGradeFilled = grade => {
+        try {
+            const g = JSON.parse(grade || '{}');
+            return isFilled(g.grade1) && isFilled(g.grade2);
+        } catch {
+            return false;
+        }
+    };
+
+    const isFailGrade = grade => {
+        try {
+            const g = JSON.parse(grade || '{}');
+            const failSet = ['F', 'FE', 'IP'];
+            return failSet.includes((g.grade1 || '').toUpperCase()) || failSet.includes((g.grade2 || '').toUpperCase());
+        } catch {
+            return false;
+        }
+    };
+
+    const isPassStatusTrue = v => v === 1 || v === '1' || v === true;
+    const isPassStatusFalse = v => v === 0 || v === '0' || v === false;
+
+    const filteredProjects = mode === 'all'
+        ? projects
+        : projects.filter(p => {
+            // สถานะ fail: สนใจแค่ passStatus2 กับเกรด
+            if (mode === 'fail') {
+                return isFailGrade(p.gradePj2);
+            }
+
+            // สถานะ pass: เงื่อนไขเดิม
+            if (mode === 'pass') {
+                console.log('b');
+                return (
+                    isFilled(p.yearPj2) &&
+                    isGradeFilled(p.gradePj2) &&
+                    !isFailGrade(p.gradePj2) &&
+                    p.engS1 === 1 && p.engS2 === 1 &&
+                    isFilled(p.test30) &&
+                    isPassStatusTrue(p.passStatus2) &&
+                    p.docStatus2 === 1 &&
+                    p.gradeSend1 === 1 && p.gradeSend2 === 1
+                );
+            }
+
+            // สถานะ pending: ต้องมีชื่อโปรเจค ชื่อนักศึกษา รหัสนักศึกษา และช่องอื่นๆ ว่าง
+            if (mode === 'pending') {
+                console.log('c');
+                return (
+                    isFilled(p.p_nameTH) &&
+                    isFilled(p.s_name1) &&
+                    isFilled(p.s_code1) &&
+                    !isFilled(p.yearPj2) &&
+                    !isFilled(p.engS1) && !isFilled(p.engS2) &&
+                    !isFilled(p.test30) &&
+                    !isFilled(p.passStatus2) &&
+                    !isFilled(p.docStatus2) &&
+                    !isFilled(p.gradeSend1) && !isFilled(p.gradeSend2) &&
+                    !isFilled(p.gradePj2)
+                );
+            }
+
+            // สถานะ pendinggrade: มีข้อมูลครบ แต่ยังไม่ส่งเกรด
+            if (mode === 'pendinggrade') {
+                console.log('d');
+                return (
+                    isFilled(p.yearPj2) &&
+                    !isGradeFilled(p.gradePj2) &&
+                    p.engS1 === 1 && p.engS2 === 1 &&
+                    isFilled(p.test30) &&
+                    isPassStatusTrue(p.passStatus2) &&
+                    p.docStatus2 === 1 &&
+                    (!isFilled(p.gradeSend1) || !isFilled(p.gradeSend2))
+                );
+            }
+
+            // สถานะ noTest: ยังไม่ทดลอง 30 วัน
+            if (mode === 'noTest') {
+                console.log('e');
+                return (
+                    isFilled(p.yearPj2) &&
+                    isGradeFilled(p.gradePj2) &&
+                    p.engS1 === 1 && p.engS2 === 1 &&
+                    !isFilled(p.test30) &&
+                    isPassStatusTrue(p.passStatus2) &&
+                    p.docStatus2 === 1 &&
+                    p.gradeSend1 === 1 && p.gradeSend2 === 1
+                );
+            }
+
+            // สถานะ eng: สนใจแค่ผลสอบ Eng
+            if (mode === 'eng') {
+                console.log('f');
+                // ถ้าไม่มีข้อมูลทั้งสองช่อง ให้เข้าเงื่อนไขนี้ด้วย
+                if ((p.engS1 === null || p.engS1 === undefined) && (p.engS2 === null || p.engS2 === undefined)) return true;
+                const isEng1Passed = p.engS1 === 1;
+                const isEng2Passed = p.engS2 === 1;
+                return (isEng1Passed !== isEng2Passed);
+            }
+
+            return true; // fallback
+        });
 
     const handleEditChange = (pj2_ID, field) => (e) => {
         const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -259,8 +290,6 @@ function Project2() {
             console.error(error);
         }
     };
-
-    const displayProjects = filterProjects(filteredProjects, mode);
 
     return (
         <div className="flex flex-col h-screen">
@@ -383,21 +412,20 @@ function Project2() {
                                 <tr className="bg-gray-200 text-gray-700">
                                     <th className="w-[40px] px-2 py-1 border text-xs text-center">ลำดับ</th>
                                     <th className="w-[180px] px-4 py-2 border text-xs text-center">ชื่อโปรเจค</th>
-                                    <th className="w-[120px] px-4 py-2 border text-xs text-center">ชื่อนักศึกษา</th>
+                                    <th className="w-[140px] px-4 py-2 border text-xs text-center">ชื่อนักศึกษา</th>
                                     <th className="w-[80px] px-4 py-2 border text-xs text-center">รหัสนักศึกษา</th>
                                     <th className="w-[60px] px-1 py-1 border text-xs text-center">ผลสอบEng</th>
                                     <th className="w-[60px] px-1 py-1 border text-xs text-center">ทดลอง 30 วัน</th>
-                                    <th className="w-[80px] px-1 py-1 border text-xs text-center">เอกสารขอสอบ</th>
+                                    <th className="w-[60px] px-1 py-1 border text-xs text-center">เอกสารขอสอบ</th>
                                     <th className="w-[60px] px-1 py-1 border text-xs text-center">ปีที่สอบ</th>
                                     <th className="w-[60px] px-1 py-1 border text-xs text-center">ผ่าน/ไม่ผ่าน</th>
                                     <th className="w-[60px] px-1 py-1 border text-xs text-center">เกรด(โปรเจค2)</th>
-                                    <th className="w-[60px] px-1 py-1 border text-xs text-center">ส่งเกรด นศ.1</th>
-                                    <th className="w-[60px] px-1 py-1 border text-xs text-center">ส่งเกรด นศ.2</th>
-                                    <th className="w-[80px] px-1 py-1 border text-xs text-center">หมายเหตุ</th>
+                                    <th className="w-[60px] px-1 py-1 border text-xs text-center">ส่งเกรด</th>
+                                    <th className="w-[40px] px-1 py-1 border text-xs text-center">หมายเหตุ</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {displayProjects.length === 0 ? (
+                                {filteredProjects.length === 0 ? (
                                     <tr>
                                         <td colSpan={13} className="text-center py-6 text-gray-500 text-sm">ไม่มีข้อมูล</td>
                                     </tr>
@@ -414,7 +442,6 @@ function Project2() {
                                         } catch {
                                             gradeObj = { grade1: '', grade2: '' };
                                         }
-                                        console.log('passStatus2:', p.passStatus2);
                                         return (
                                             <tr key={p.pj2_ID} className="bg-white">
                                                 <td className="px-2 py-1 border text-xs text-center">{idx + 1}</td>
@@ -574,12 +601,12 @@ function Project2() {
                                                     )}
                                                 </td>
                                                 {/* เกรด(โปรเจค2) */}
-                                                <td className="px-1 py-1 border text-xs text-center max-w-[60px] overflow-hidden">
+                                                <td className="px-1 py-1 border text-xs text-center w-[60px] max-w-[60px] overflow-hidden">
                                                     {isEditMode ? (
                                                         <>
                                                             <input
                                                                 type="text"
-                                                                className="w-16 max-w-[56px] text-xs border-0 border-b border-gray-400 bg-transparent text-center truncate"
+                                                                className="w-full max-w-[56px] text-xs border-0 border-b border-gray-400 bg-transparent text-center truncate"
                                                                 value={gradeObj.grade1}
                                                                 onChange={e => {
                                                                     const newGrade = { ...gradeObj, grade1: e.target.value };
@@ -591,11 +618,12 @@ function Project2() {
                                                                         }
                                                                     }));
                                                                 }}
+                                                                placeholder="เกรด1"
                                                             />
                                                             <br />
                                                             <input
                                                                 type="text"
-                                                                className="w-16 max-w-[56px] text-xs border-0 border-b border-gray-400 bg-transparent text-center truncate"
+                                                                className="w-full max-w-[56px] text-xs border-0 border-b border-gray-400 bg-transparent text-center truncate"
                                                                 value={gradeObj.grade2}
                                                                 onChange={e => {
                                                                     const newGrade = { ...gradeObj, grade2: e.target.value };
@@ -607,46 +635,40 @@ function Project2() {
                                                                         }
                                                                     }));
                                                                 }}
+                                                                placeholder="เกรด2"
                                                             />
                                                         </>
                                                     ) : (
-                                                        (() => {
-                                                            try {
-                                                                const g = JSON.parse(p.gradePj2 || '{}');
-                                                                return (
-                                                                    <>
-                                                                        {g.grade1 || '-'}
-                                                                        <br />
-                                                                        {g.grade2 || '-'}
-                                                                    </>
-                                                                );
-                                                            } catch {
-                                                                return p.gradePj2 || '-';
-                                                            }
-                                                        })()
+                                                        <>
+                                                            {gradeObj.grade1 || '-'}
+                                                            <br />
+                                                            {gradeObj.grade2 || '-'}
+                                                        </>
                                                     )}
                                                 </td>
-                                                {/* ส่งเกรด นศ.1 */}
-                                                <td className="px-1 py-1 border text-xs text-center max-w-[60px] overflow-hidden">
+                                                <td className="px-1 py-1 border text-xs text-center w-[60px] max-w-[60px] overflow-hidden">
                                                     {isEditMode ? (
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={!!editState[p.pj2_ID]?.gradeSend1}
-                                                            onChange={handleEditChange(p.pj2_ID, 'gradeSend1')}
-                                                        />
+                                                        <>
+                                                            <input
+                                                                type="checkbox"
+                                                                className="w-4 h-4 align-middle"
+                                                                checked={!!editState[p.pj2_ID]?.gradeSend1}
+                                                                onChange={handleEditChange(p.pj2_ID, 'gradeSend1')}
+                                                            />
+                                                            <br />
+                                                            <input
+                                                                type="checkbox"
+                                                                className="w-4 h-4 align-middle"
+                                                                checked={!!editState[p.pj2_ID]?.gradeSend2}
+                                                                onChange={handleEditChange(p.pj2_ID, 'gradeSend2')}
+                                                            />
+                                                        </>
                                                     ) : (
-                                                        p.gradeSend1 === 1 ? '✔' : '-'
-                                                    )}
-                                                </td>
-                                                <td className="px-1 py-1 border text-xs text-center max-w-[60px] overflow-hidden">
-                                                    {isEditMode ? (
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={!!editState[p.pj2_ID]?.gradeSend2}
-                                                            onChange={handleEditChange(p.pj2_ID, 'gradeSend2')}
-                                                        />
-                                                    ) : (
-                                                        p.gradeSend2 === 1 ? '✔' : '-'
+                                                        <>
+                                                            {p.gradeSend1 === 1 ? '✔' : '-'}
+                                                            <br />
+                                                            {p.gradeSend2 === 1 ? '✔' : '-'}
+                                                        </>
                                                     )}
                                                 </td>
                                                 {/* หมายเหตุ */}
