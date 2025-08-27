@@ -15,22 +15,22 @@ function Profile() {
         if (!searchName.trim()) return;
         try {
             const res = await axios.get(`http://localhost:8000/student?name=${encodeURIComponent(searchName)}`);
-            setSearchResult(res.data);
+            setSearchResult(res.data); // res.data เป็น array
         } catch (error) {
-            setSearchResult(null);
+            setSearchResult([]);
         }
     };
 
     return (
         <div>
             <Navbar />
-            <div className="max-w-xl mx-auto mt-20 p-4 bg-white rounded-xl shadow">
+            <div className="max-w-xl mx-auto mt-20 p-4">
                 <h2 className="text-lg font-semibold mb-4">ค้นหาข้อมูลนักศึกษา</h2>
                 <div className="flex gap-2 mb-6">
                     <input
                         type="text"
                         className="border px-3 py-2 rounded-3xl text-sm w-full"
-                        placeholder="กรอกชื่อนักศึกษา"
+                        placeholder="ค้นหาด้วยชื่อ,รหัสนักศึกษา,ชื่อโปรเจค"
                         value={searchName}
                         onChange={e => setSearchName(e.target.value)}
                     />
@@ -42,16 +42,18 @@ function Profile() {
                         ค้นหา
                     </button>
                 </div>
-                {searchResult && (
+                {searchResult && searchResult.length > 0 ? (
                     <div className="mt-4">
-                        {/* แสดงข้อมูลนักศึกษาและโปรเจคที่ค้นเจอ */}
-                        <div>ชื่อ: {searchResult.name}</div>
-                        <div>รหัส: {searchResult.code}</div>
-                        {/* เพิ่มข้อมูลโปรเจคตามที่ต้องการ */}
+                        {searchResult.map((pj, idx) => (
+                            <div key={idx} className="mb-4 border-b pb-2">
+                                <div>ชื่อนักศึกษาคนที่ 1: {pj.s_name1}  รหัสนักศึกษาคนที่ 1: {pj.s_code1}</div>
+                                <div>ชื่อนักศึกษาคนที่ 2: {pj.s_name2}  รหัสนักศึกษาคนที่ 2: {pj.s_code2}</div>
+                                <div>ชื่อโปรเจค: {pj.p_nameEN} {pj.p_nameTH}</div>
+                            </div>
+                        ))}
                     </div>
-                )}
-                {!searchResult && (
-                    <div className="text-gray-500 mt-4">ไม่พบข้อมูลนักศึกษา</div>
+                ) : (
+                    <div className="text-gray-500 mt-4">ไม่พบข้อมูล</div>
                 )}
             </div>
         </div>
