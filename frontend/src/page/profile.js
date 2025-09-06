@@ -1,23 +1,36 @@
-// แสดงข้อมูลของนศคนนั้นว่าโปรเจคถึงไหนแล้ว กรณีผ่านเจค1แล้วให้แสดงทั้งเจค1 เจค2เลย ถ้ายังไม่ผ่านเจค1ให้ส่วนเจค2ขึ้นว่าไม่มีข้อมูล
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 import Navbar from '../component/navbar';
 
 function Profile() {
-    const [student, setStudent] = useState({});
-    const [projects, setProjects] = useState([]);
-    const [pj1, setPj1] = useState(null);
-    const [pj2, setPj2] = useState(null);
     const [searchName, setSearchName] = useState('');
     const [searchResult, setSearchResult] = useState(null);
+    const [selectedIndex, setSelectedIndex] = useState(null);
+    const [projectStatus, setProjectStatus] = useState(null);
 
     const handleSearch = async () => {
         if (!searchName.trim()) return;
         try {
             const res = await axios.get(`http://localhost:8000/student?name=${encodeURIComponent(searchName)}`);
-            setSearchResult(res.data); // res.data เป็น array
+            setSearchResult(res.data);
+            setSelectedIndex(null);
+            setProjectStatus(null);
         } catch (error) {
             setSearchResult([]);
+            setSelectedIndex(null);
+            setProjectStatus(null);
+        }
+    };
+
+    const handleProjectStatus = async (pj) => {
+        try {
+            const res = await axios.post(
+                'http://localhost:8000/project/search',
+                { searchResult: pj.p_nameTH || pj.p_nameEN }
+            );
+            setProjectStatus(res.data);
+        } catch (error) {
+            setProjectStatus(null);
         }
     };
 
@@ -33,6 +46,11 @@ function Profile() {
                         placeholder="ค้นหาด้วยชื่อ,รหัสนักศึกษา,ชื่อโปรเจค"
                         value={searchName}
                         onChange={e => setSearchName(e.target.value)}
+                        onKeyDown={e => {
+                            if (e.key === "Enter" && searchName.trim()) {
+                                handleSearch();
+                            }
+                        }}
                     />
                     <button
                         className="px-4 py-2 bg-[#000066] text-white rounded-3xl text-sm"
@@ -44,13 +62,70 @@ function Profile() {
                 </div>
                 {searchResult && searchResult.length > 0 ? (
                     <div className="mt-4">
-                        {searchResult.map((pj, idx) => (
-                            <div key={idx} className="mb-4 border-b pb-2">
-                                <div>ชื่อนักศึกษาคนที่ 1: {pj.s_name1}  รหัสนักศึกษาคนที่ 1: {pj.s_code1}</div>
-                                <div>ชื่อนักศึกษาคนที่ 2: {pj.s_name2}  รหัสนักศึกษาคนที่ 2: {pj.s_code2}</div>
-                                <div>ชื่อโปรเจค: {pj.p_nameEN} {pj.p_nameTH}</div>
+                        {selectedIndex === null ? (
+                            <div className="flex flex-col gap-2">
+                                {searchResult.map((pj, idx) => (
+                                    <button
+                                        key={idx}
+                                        className="text-left border rounded-xl px-4 py-2 shadow bg-white hover:bg-gray-100 transition"
+                                        onClick={() => {
+                                            setSelectedIndex(idx);
+                                            handleProjectStatus(pj);
+                                        }}
+                                    >
+                                        <div className="font-semibold">
+                                            {pj.p_nameTH || pj.p_nameEN || 'ไม่มีชื่อโปรเจค'}
+                                        </div>
+                                        <div className="text-xs text-gray-600">
+                                            {pj.s_name1} {pj.s_code1}
+                                            {pj.s_name2 ? `, ${pj.s_name2} ${pj.s_code2}` : ''}
+                                        </div>
+                                        <div className="text-xs text-gray-500">
+                                            ภาคการศึกษา: {pj.semester}
+                                        </div>
+                                    </button>
+                                ))}
                             </div>
-                        ))}
+                        ) : (
+                            <div className="mt-6 p-4 border rounded-2xl bg-gray-50 shadow">
+                                <div className="font-bold text-blue-900 mb-2">
+                                    รายละเอียดโปรเจค
+                                </div>
+                                <div>นักศึกษา: {searchResult[selectedIndex].s_code1} {searchResult[selectedIndex].s_name1}</div>
+                                <div className="ml-16">{searchResult[selectedIndex].s_code2} {searchResult[selectedIndex].s_name2}</div>
+                                <div>
+                                    ชื่อโปรเจค: {searchResult[selectedIndex].p_nameTH}
+                                </div>
+                                <div className="ml-20">
+                                    {searchResult[selectedIndex].p_nameEN}
+                                </div>
+                                <div>
+                                    สถานะโปรเจค:{" "}
+                                    {projectStatus === null
+                                        ? "กำลังโหลด..."
+                                        : projectStatus.status
+                                            ? projectStatus.status
+                                            : "ไม่พบสถานะ"}
+                                </div>
+                                <div>
+                                    อาจารย์ที่ปรึกษาหลัก: {projectStatus && projectStatus.mainMentor ? projectStatus.mainMentor : "-"}
+                                </div>
+                                <div>
+                                    อาจารย์ที่ปรึกษาร่วม: {projectStatus && projectStatus.coMentor ? projectStatus.coMentor : "-"}
+                                </div>
+                                <div>ภาคการศึกษา: {searchResult[selectedIndex].semester}</div>
+                                <div>หมายเหตุ: {searchResult[selectedIndex].note || '-'}</div>
+                                <button
+                                    className="mt-4 px-4 py-2 bg-gray-300 rounded-3xl text-sm"
+                                    onClick={() => {
+                                        setSelectedIndex(null);
+                                        setProjectStatus(null);
+                                    }}
+                                >
+                                    กลับไปเลือกโปรเจคอื่น
+                                </button>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="text-gray-500 mt-4">ไม่พบข้อมูล</div>

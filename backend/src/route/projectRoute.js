@@ -7,6 +7,7 @@ router.get('/getsemester', ProjectController.getSemester);
 router.get('/:id', ProjectController.getProjectById);
 
 router.post('/create', ProjectController.createProject);
+router.post('/search', ProjectController.getPjStatusBySearchResult);
 
 router.put('/update/:id', ProjectController.updateProject);
 

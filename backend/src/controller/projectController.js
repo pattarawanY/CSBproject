@@ -200,6 +200,96 @@ const ProjectController = {
             res.status(500).json({ error: 'Internal server error' });
         }
     },
+
+    async getPjStatusBySearchResult(req, res) {
+        const { searchResult } = req.body;
+        try {
+            // 1. หา p_ID จากชื่อโปรเจค
+            const [rows] = await db.query(
+                'SELECT * FROM project WHERE p_nameTH = ? OR p_nameEN = ?',
+                [searchResult, searchResult]
+            );
+            if (rows.length === 0) {
+                return res.json({ found: false, status: "ไม่พบโปรเจค" });
+            }
+            const project = rows[0];
+            const p_ID = project.p_ID;
+
+            // 2. หาใน project1 ด้วย p_ID
+            const [pj1Rows] = await db.query(
+                'SELECT * FROM project1 WHERE p_ID = ?',
+                [p_ID]
+            );
+            if (pj1Rows.length === 0) {
+                // ดึงชื่ออาจารย์
+                const mainMentorName = await getTeacherName(project.mainMentor);
+                const coMentorName = await getTeacherName(project.coMentor);
+                return res.json({
+                    found: true,
+                    status: "ยังไม่สอบโปรเจค",
+                    mainMentor: mainMentorName,
+                    coMentor: coMentorName
+                });
+            }
+
+            // 3. เช็ค pass ใน project1
+            if (pj1Rows[0].pass != 1) {
+                const mainMentorName = await getTeacherName(project.mainMentor);
+                const coMentorName = await getTeacherName(project.coMentor);
+                return res.json({
+                    found: true,
+                    status: "กำลังสอบก้าวหน้า",
+                    mainMentor: mainMentorName,
+                    coMentor: coMentorName
+                });
+            }
+
+            // 4. หาใน project2 ด้วย pj1_ID
+            const pj1_ID = pj1Rows[0].pj1_ID;
+            const [pj2Rows] = await db.query(
+                'SELECT passStatus2 FROM project2 WHERE pj1_ID = ?',
+                [pj1_ID]
+            );
+            const mainMentorName = await getTeacherName(project.mainMentor);
+            const coMentorName = await getTeacherName(project.coMentor);
+
+            if (pj2Rows.length === 0) {
+                return res.json({
+                    found: true,
+                    status: "กำลังสอบป้องกัน",
+                    mainMentor: mainMentorName,
+                    coMentor: coMentorName
+                });
+            }
+
+            // 5. เช็ค passStatus2 ใน project2
+            if (pj2Rows[0].passStatus2 == 1) {
+                return res.json({
+                    found: true,
+                    status: "ผ่านทั้งหมดแล้ว",
+                    mainMentor: mainMentorName,
+                    coMentor: coMentorName
+                });
+            } else {
+                return res.json({
+                    found: true,
+                    status: "กำลังสอบป้องกัน",
+                    mainMentor: mainMentorName,
+                    coMentor: coMentorName
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching project status:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+
+        // ฟังก์ชันช่วยค้นหาชื่ออาจารย์
+        async function getTeacherName(t_ID) {
+            if (!t_ID) return "";
+            const [rows] = await db.query('SELECT t_name FROM teacher WHERE t_ID = ?', [t_ID]);
+            return rows.length > 0 ? rows[0].t_name : "";
+        }
+    }
 }
 
 module.exports = ProjectController;

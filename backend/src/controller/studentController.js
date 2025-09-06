@@ -28,6 +28,10 @@ const StudentController = {
                     `%${name}%`, `%${name}%`
                 ]
             );
+            console.log(rows);
+            if (rows.length === 0) {
+                return res.status(404).json({ error: 'Student not found' });
+            }
             res.json(rows);
         } catch (error) {
             res.status(500).json({ error: 'Internal server error' });
