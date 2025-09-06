@@ -18,6 +18,7 @@ function Project1() {
     const [search, setSearch] = useState('');
     const handleEditMode = () => setIsEditMode(true);
     const handleCancelEdit = () => setIsEditMode(false);
+    const [selectedSemester, setSelectedSemester] = useState('');
     const [gradesState, setGradesState] = useState({});
 
     useEffect(() => {
@@ -113,10 +114,31 @@ function Project1() {
         }));
     };
 
-    const filteredProjects = mode === 'all'
-        ? projects
-        : projects.filter(p => {
+    const filteredProjects = projects
+        .filter(p => {
+            if (!search.trim()) return true;
+            const keyword = search.trim().toLowerCase();
+            return (
+                (p.p_nameTH && p.p_nameTH.toLowerCase().includes(keyword)) ||
+                (p.p_nameEN && p.p_nameEN.toLowerCase().includes(keyword)) ||
+                (p.s_name1 && p.s_name1.toLowerCase().includes(keyword)) ||
+                (p.s_name2 && p.s_name2.toLowerCase().includes(keyword)) ||
+                (p.s_code1 && p.s_code1.toLowerCase().includes(keyword)) ||
+                (p.s_code2 && p.s_code2.toLowerCase().includes(keyword))
+            );
+        })
+        .filter(p => {
+            // filter ด้วยปีการศึกษาจาก yearPj1 (ปีที่สอบ)
+            if (selectedSemester && selectedSemester.trim()) {
+                return String(p.yearPj1).trim().toLowerCase() === String(selectedSemester).trim().toLowerCase();
+            }
+            return true;
+        })
+        .filter(p => {
+            // เงื่อนไข mode เดิม
             const pj1 = project1Data[p.p_ID];
+
+            if (mode === 'all') return true;
 
             if (mode === 'pending') {
                 return (
@@ -163,7 +185,6 @@ function Project1() {
             }
 
             if (mode === 'fail') {
-                // ถ้าเกรดใดเกรดหนึ่งเป็น F ถือว่าไม่ผ่าน
                 return isMentor && isDoc && hasGrade &&
                     (pj1.grades?.grade1 === 'F' || pj1.grades?.grade2 === 'F');
             }
@@ -296,7 +317,12 @@ function Project1() {
 
     return (
         <div className="flex flex-col h-screen">
-            <Navbar search={search} setSearch={setSearch} />
+            <Navbar
+                search={search}
+                setSearch={setSearch}
+                selectedSemester={selectedSemester}
+                setSelectedSemester={setSelectedSemester}
+            />
             <div className="flex-1 mt-10 flex flex-col items-left justify-start bg-gray-100 p-8">
                 <div className="flex items-center gap-4 w-full">
                     <h2 className="text-lg font-semibold mb-2">การสอบก้าวหน้า</h2>

@@ -175,13 +175,16 @@ function Navbar({ search, setSearch, selectedSemester, setSelectedSemester }) {
                         {/* ช่องค้นหา */}
                         <div className="flex-1 flex justify-center min-w-[320px]">
                             {(location.pathname !== "/" && location.pathname !== "/profile") ? (
-                                <input
-                                    type="text"
-                                    className="border border-white bg-transparent px-3 py-2 rounded-full w-80 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#000066] placeholder:text-xs"
-                                    placeholder="ค้นหาโปรเจค/นักศึกษา/รหัส/ที่ปรึกษา/สถานะ..."
-                                    value={searchValue}
-                                    onChange={e => setSearchValue(e.target.value)}
-                                />
+                                <>
+                                    <input
+                                        type="text"
+                                        className="border border-white bg-transparent px-3 py-2 rounded-full w-80 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#000066] placeholder:text-xs"
+                                        placeholder="ค้นหาโปรเจค/นักศึกษา/รหัส/ที่ปรึกษา/สถานะ..."
+                                        value={searchValue}
+                                        onChange={e => setSearchValue(e.target.value)}
+                                    />
+                                    {/* ลบปุ่มค้นหาออก */}
+                                </>
                             ) : (
                                 <div className="w-80 h-10" />
                             )}
