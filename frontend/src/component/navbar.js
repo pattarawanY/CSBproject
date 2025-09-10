@@ -204,6 +204,17 @@ function Navbar({ search, setSearch, selectedSemester, setSelectedSemester }) {
                                 {isSemesterDropdownOpen && (
                                     <div className="absolute top-full mt-2 z-50 w-full bg-white border rounded-3xl shadow-lg">
                                         <div className="max-h-[120px] overflow-y-auto pr-1">
+                                            {/* เพิ่มตัวเลือก "แสดงทั้งหมด" ที่บนสุด */}
+                                            <div
+                                                key="all"
+                                                className="px-4 py-2 hover:bg-blue-50 hover:text-blue-700 cursor-pointer text-sm text-gray-700 transition-all duration-300 rounded-tl-3xl"
+                                                onClick={() => {
+                                                    setSelectedSemester('');
+                                                    setIsSemesterDropdownOpen(false);
+                                                }}
+                                            >
+                                                แสดงทั้งหมด
+                                            </div>
                                             {semesterList.map((sem, idx) => {
                                                 const isFirst = idx === 0;
                                                 const isLast = idx === semesterList.length - 1;
@@ -212,7 +223,7 @@ function Navbar({ search, setSearch, selectedSemester, setSelectedSemester }) {
                                                         key={sem.id}
                                                         className={
                                                             "px-4 py-2 hover:bg-blue-50 hover:text-blue-700 cursor-pointer text-sm text-gray-700 transition-all duration-300 " +
-                                                            (isFirst ? "rounded-tl-3xl " : "") +
+                                                            (isFirst ? "" : "") +
                                                             (isLast ? "rounded-bl-3xl " : "")
                                                         }
                                                         onClick={() => {

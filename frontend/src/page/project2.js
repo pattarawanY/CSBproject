@@ -15,6 +15,7 @@ function Project2() {
     const [editState, setEditState] = useState({});
     const [passState, setPassState] = useState({});
     const [search, setSearch] = useState('');
+    const [selectedSemester, setSelectedSemester] = useState('');
     const handleEditMode = () => {
         const newEditState = {};
         filteredProjects.forEach(p => {
@@ -136,9 +137,31 @@ function Project2() {
     const isPassStatusTrue = v => v === 1 || v === '1' || v === true;
     const isPassStatusFalse = v => v === 0 || v === '0' || v === false;
 
-    const filteredProjects = mode === 'all'
-        ? projects
-        : projects.filter(p => {
+    const filteredProjects = projects
+        .filter(p => {
+            // filter ด้วยคำค้นหา
+            if (!search.trim()) return true;
+            const keyword = search.trim().toLowerCase();
+            return (
+                (p.p_nameTH && p.p_nameTH.toLowerCase().includes(keyword)) ||
+                (p.p_nameEN && p.p_nameEN.toLowerCase().includes(keyword)) ||
+                (p.s_name1 && p.s_name1.toLowerCase().includes(keyword)) ||
+                (p.s_name2 && p.s_name2.toLowerCase().includes(keyword)) ||
+                (p.s_code1 && p.s_code1.toLowerCase().includes(keyword)) ||
+                (p.s_code2 && p.s_code2.toLowerCase().includes(keyword))
+            );
+        })
+        .filter(p => {
+            // filter ด้วยปีการศึกษาจาก yearPj2
+            if (selectedSemester && selectedSemester.trim()) {
+                return String(p.yearPj2).trim().toLowerCase() === String(selectedSemester).trim().toLowerCase();
+            }
+            return true;
+        })
+        .filter(p => {
+            // filter mode เดิม
+            if (mode === 'all') return true;
+
             // สถานะ fail: สนใจแค่ passStatus2 กับเกรด
             if (mode === 'fail') {
                 return isFailGrade(p.gradePj2);
@@ -146,7 +169,6 @@ function Project2() {
 
             // สถานะ pass: เงื่อนไขเดิม
             if (mode === 'pass') {
-                console.log('b');
                 return (
                     isFilled(p.yearPj2) &&
                     isGradeFilled(p.gradePj2) &&
@@ -161,52 +183,132 @@ function Project2() {
 
             // สถานะ pending: ต้องมีชื่อโปรเจค ชื่อนักศึกษา รหัสนักศึกษา และช่องอื่นๆ ว่าง
             if (mode === 'pending') {
-                console.log('c');
+                // เฉพาะช่องที่ต้องเช็ค
+                const isEmptyOrDash = v =>
+                    v === null || v === undefined || (typeof v === 'string' && v.trim() === '') || v === '-';
+
+                // ผลสอบ Eng
+                const engS1Empty = isEmptyOrDash(p.engS1) || p.engS1 === 0;
+                const engS2Empty = isEmptyOrDash(p.engS2) || p.engS2 === 0;
+
+                // ทดลอง 30 วัน
+                const test30Empty = isEmptyOrDash(p.test30) || p.test30 === 0;
+
+                // เอกสารขอสอบ
+                const docStatus2Empty = isEmptyOrDash(p.docStatus2) || p.docStatus2 === 0;
+
+                // ปีที่สอบ
+                const yearPj2Empty = isEmptyOrDash(p.yearPj2);
+
+                // ผ่าน/ไม่ผ่าน
+                const passStatus2Empty = isEmptyOrDash(p.passStatus2) || p.passStatus2 === 0;
+
+                // เกรดโปรเจค2
+                let gradeEmpty = true;
+                try {
+                    const g = JSON.parse(p.gradePj2 || '{}');
+                    gradeEmpty = isEmptyOrDash(g.grade1) && isEmptyOrDash(g.grade2);
+                } catch {
+                    gradeEmpty = true;
+                }
+
+                // ส่งเกรด
+                const gradeSend1Empty = isEmptyOrDash(p.gradeSend1) || p.gradeSend1 === 0;
+                const gradeSend2Empty = isEmptyOrDash(p.gradeSend2) || p.gradeSend2 === 0;
+
+                // ทุกช่องต้องว่างหรือเป็น '-'
                 return (
-                    isFilled(p.p_nameTH) &&
-                    isFilled(p.s_name1) &&
-                    isFilled(p.s_code1) &&
-                    !isFilled(p.yearPj2) &&
-                    !isFilled(p.engS1) && !isFilled(p.engS2) &&
-                    !isFilled(p.test30) &&
-                    !isFilled(p.passStatus2) &&
-                    !isFilled(p.docStatus2) &&
-                    !isFilled(p.gradeSend1) && !isFilled(p.gradeSend2) &&
-                    !isFilled(p.gradePj2)
+                    engS1Empty &&
+                    engS2Empty &&
+                    test30Empty &&
+                    docStatus2Empty &&
+                    yearPj2Empty &&
+                    passStatus2Empty &&
+                    gradeEmpty &&
+                    gradeSend1Empty &&
+                    gradeSend2Empty
                 );
             }
 
             // สถานะ pendinggrade: มีข้อมูลครบ แต่ยังไม่ส่งเกรด
             if (mode === 'pendinggrade') {
-                console.log('d');
+                // ฟังก์ชันเช็คว่ามีข้อมูล (ไม่ใช่ null, undefined, '', '-')
+                const isFilledOrTrue = v =>
+                    v !== null && v !== undefined && !(typeof v === 'string' && v.trim() === '') && v !== '-' && v !== 0;
+
+                // ผลสอบ Eng
+                const engS1Filled = isFilledOrTrue(p.engS1) && p.engS1 === 1;
+                const engS2Filled = isFilledOrTrue(p.engS2) && p.engS2 === 1;
+
+                // ทดลอง 30 วัน
+                const test30Filled = isFilledOrTrue(p.test30) && p.test30 === 1;
+
+                // เอกสารขอสอบ
+                const docStatus2Filled = isFilledOrTrue(p.docStatus2) && p.docStatus2 === 1;
+
+                // ปีที่สอบ
+                const yearPj2Filled = isFilledOrTrue(p.yearPj2);
+
+                // ผ่าน/ไม่ผ่าน
+                const passStatus2Filled = isFilledOrTrue(p.passStatus2) && p.passStatus2 === 1;
+
+                // เกรดโปรเจค2
+                let gradeFilled = false;
+                try {
+                    const g = JSON.parse(p.gradePj2 || '{}');
+                    gradeFilled = isFilledOrTrue(g.grade1) && isFilledOrTrue(g.grade2);
+                } catch {
+                    gradeFilled = false;
+                }
+
+                // ส่งเกรด ต้องไม่มีข้อมูลหรือเป็น '-'
+                const gradeSend1Empty = !isFilledOrTrue(p.gradeSend1) || p.gradeSend1 === 0;
+                const gradeSend2Empty = !isFilledOrTrue(p.gradeSend2) || p.gradeSend2 === 0;
+
                 return (
-                    isFilled(p.yearPj2) &&
-                    !isGradeFilled(p.gradePj2) &&
-                    p.engS1 === 1 && p.engS2 === 1 &&
-                    isFilled(p.test30) &&
-                    isPassStatusTrue(p.passStatus2) &&
-                    p.docStatus2 === 1 &&
-                    (!isFilled(p.gradeSend1) || !isFilled(p.gradeSend2))
+                    engS1Filled &&
+                    engS2Filled &&
+                    test30Filled &&
+                    docStatus2Filled &&
+                    yearPj2Filled &&
+                    passStatus2Filled &&
+                    gradeFilled &&
+                    gradeSend1Empty &&
+                    gradeSend2Empty
                 );
             }
 
-            // สถานะ noTest: ยังไม่ทดลอง 30 วัน
             if (mode === 'noTest') {
-                console.log('e');
+                // ฟังก์ชันเช็คว่าไม่มีข้อมูล (null, undefined, '', '-')
+                const isEmptyOrDash = v =>
+                    v === null || v === undefined || (typeof v === 'string' && v.trim() === '') || v === '-' || v === 0;
+
+                // ทดลอง 30 วัน
+                const test30Empty = isEmptyOrDash(p.test30);
+
+                // เกรดโปรเจค2
+                let gradeEmpty = true;
+                try {
+                    const g = JSON.parse(p.gradePj2 || '{}');
+                    gradeEmpty = isEmptyOrDash(g.grade1) && isEmptyOrDash(g.grade2);
+                } catch {
+                    gradeEmpty = true;
+                }
+
+                // ส่งเกรด
+                const gradeSend1Empty = isEmptyOrDash(p.gradeSend1);
+                const gradeSend2Empty = isEmptyOrDash(p.gradeSend2);
+
                 return (
-                    isFilled(p.yearPj2) &&
-                    isGradeFilled(p.gradePj2) &&
-                    p.engS1 === 1 && p.engS2 === 1 &&
-                    !isFilled(p.test30) &&
-                    isPassStatusTrue(p.passStatus2) &&
-                    p.docStatus2 === 1 &&
-                    p.gradeSend1 === 1 && p.gradeSend2 === 1
+                    test30Empty &&
+                    gradeEmpty &&
+                    gradeSend1Empty &&
+                    gradeSend2Empty
                 );
             }
 
             // สถานะ eng: สนใจแค่ผลสอบ Eng
             if (mode === 'eng') {
-                console.log('f');
                 // ถ้าไม่มีข้อมูลทั้งสองช่อง ให้เข้าเงื่อนไขนี้ด้วย
                 if ((p.engS1 === null || p.engS1 === undefined) && (p.engS2 === null || p.engS2 === undefined)) return true;
                 const isEng1Passed = p.engS1 === 1;
@@ -214,7 +316,7 @@ function Project2() {
                 return (isEng1Passed !== isEng2Passed);
             }
 
-            return true; // fallback
+            return true;
         });
 
     const handleEditChange = (pj2_ID, field) => (e) => {
@@ -293,7 +395,12 @@ function Project2() {
 
     return (
         <div className="flex flex-col h-screen">
-            <Navbar search={search} setSearch={setSearch} />
+            <Navbar
+                search={search}
+                setSearch={setSearch}
+                selectedSemester={selectedSemester}
+                setSelectedSemester={setSelectedSemester}
+            />
             <div className="flex-1 mt-10 flex flex-col items-left justify-start bg-gray-100 p-8">
                 <div className="flex items-center gap-4 w-full">
                     <h2 className="text-lg font-semibold mb-2">การสอบป้องกัน</h2>

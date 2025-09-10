@@ -54,19 +54,22 @@ function AllProject() {
                     let statusLabel = 'ยังไม่เข้าสอบ';
 
                     if (pj2 && pj2.gradePj2 && pj2.gradePj2 !== '' && pj2.gradePj2 !== 0) {
-                        console.log(`${p.p_ID} ผ่านทั้งหมดแล้ว`);
                         statusLabel = 'ผ่านทั้งหมดแล้ว';
+                        if ((!pj2.gradeSend1 || pj2.gradeSend1 === 0) && (!pj2.gradeSend2 || pj2.gradeSend2 === 0)) {
+                            return { ...p, statusLabel, note: 'ยังไม่ส่งเกรด' };
+                        }
+                        return { ...p, statusLabel, note: p.note };
                     }
                     else if (pj2 && (!pj2.gradePj2 || pj2.gradePj2 === '' || pj2.gradePj2 === 0)) {
-                        console.log(`${p.p_ID} กำลังสอบป้องกัน`);
                         statusLabel = 'กำลังสอบป้องกัน';
+                        return { ...p, statusLabel, note: p.note };
                     }
                     else if (pj1 && pj1.pass === 0) {
-                        console.log(`${p.p_ID} กำลังสอบก้าวหน้า`);
                         statusLabel = 'กำลังสอบก้าวหน้า';
+                        return { ...p, statusLabel, note: p.note };
                     }
                     else {
-                        console.log(`${p.p_ID} ยังไม่เข้าสอบ`);
+                        return { ...p, statusLabel, note: p.note };
                     }
 
                     return { ...p, statusLabel };
@@ -120,7 +123,7 @@ function AllProject() {
                                             <th className="w-[120px] px-4 py-2 border text-xs text-center">ชื่อโปรเจค</th>
                                             <th className="w-[120px] px-4 py-2 border text-xs text-center">ชื่อนักศึกษา</th>
                                             <th className="w-[42px] px-4 py-2 border text-xs text-center">รหัสนักศึกษา</th>
-                                            <th className="w-[36px] px-2 py-1 border text-xs text-center">ปีการศึกษา</th>
+                                            <th className="w-[36px] px-2 py-1 border text-xs text-center">ปีที่ผ่าน</th>
                                             <th className="w-[32px] px-2 py-1 border text-xs text-center">ที่ปรึกษาหลัก</th>
                                             <th className="w-[32px] px-2 py-1 border text-xs text-center">ที่ปรึกษาร่วม</th>
                                             <th className="w-[42px] px-2 py-1 border text-xs text-center">สถานะ</th>
