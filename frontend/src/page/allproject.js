@@ -8,6 +8,7 @@ function AllProject() {
     const [search, setSearch] = useState('');
     const [selectedSemester, setSelectedSemester] = useState('');
     const [projectsWithStatus, setProjectsWithStatus] = useState([]);
+    const [yearPass2Map, setYearPass2Map] = useState({});
 
     useEffect(() => {
         const fetchTeachername = async () => {
@@ -71,8 +72,6 @@ function AllProject() {
                     else {
                         return { ...p, statusLabel, note: p.note };
                     }
-
-                    return { ...p, statusLabel };
                 });
 
                 setProjectsWithStatus(merged);
@@ -86,6 +85,23 @@ function AllProject() {
             setProjectsWithStatus([]);
         }
     }, [projects]);
+
+    useEffect(() => {
+        const fetchYearPass2 = async () => {
+            try {
+                const res = await axios.get('http://localhost:8000/project2/yearpass2');
+                // สร้าง map จาก pj1_ID -> yearPass2
+                const map = {};
+                res.data.forEach(row => {
+                    map[row.pj1_ID] = row.yearPass2;
+                });
+                setYearPass2Map(map);
+            } catch (error) {
+                console.error('Error fetching yearPass2:', error);
+            }
+        };
+        fetchYearPass2();
+    }, []);
 
     const filteredProjects = projectsWithStatus.filter(p => {
         const q = search.toLowerCase();
@@ -123,11 +139,10 @@ function AllProject() {
                                             <th className="w-[120px] px-4 py-2 border text-xs text-center">ชื่อโปรเจค</th>
                                             <th className="w-[120px] px-4 py-2 border text-xs text-center">ชื่อนักศึกษา</th>
                                             <th className="w-[42px] px-4 py-2 border text-xs text-center">รหัสนักศึกษา</th>
-                                            <th className="w-[36px] px-2 py-1 border text-xs text-center">ปีที่ผ่าน</th>
                                             <th className="w-[32px] px-2 py-1 border text-xs text-center">ที่ปรึกษาหลัก</th>
                                             <th className="w-[32px] px-2 py-1 border text-xs text-center">ที่ปรึกษาร่วม</th>
                                             <th className="w-[42px] px-2 py-1 border text-xs text-center">สถานะ</th>
-                                            <th className="w-[36px] px-2 py-1 border text-xs text-center">หมายเหตุ</th>
+                                            <th className="w-[36px] px-2 py-1 border text-xs text-center">ปีที่ผ่าน</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -150,11 +165,12 @@ function AllProject() {
                                                     <td className="px-4 py-2 border text-xs text-left">
                                                         {p.s_code1}<br />{p.s_code2}
                                                     </td>
-                                                    <td className="px-2 py-1 border text-xs text-center">{p.semester || '-'}</td>
                                                     <td className="px-2 py-1 border text-center text-xs">{p.mainMentorName || '-'}</td>
                                                     <td className="px-2 py-1 border text-center text-xs">{p.coMentorName || '-'}</td>
                                                     <td className="px-2 py-1 border text-xs text-center">{p.statusLabel || '-'}</td>
-                                                    <td className="px-2 py-1 border text-xs text-center">{p.note || '-'}</td>
+                                                    <td className="px-2 py-1 border text-xs text-center">
+                                                        {p.statusLabel === 'ผ่านทั้งหมดแล้ว' ? (p.yearPass2 || '-') : '-'}
+                                                    </td>
                                                 </tr>
                                             ))
                                         )}

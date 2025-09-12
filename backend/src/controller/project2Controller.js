@@ -18,17 +18,18 @@ const Project2Controller = {
         try {
             const [rows] = await db.query(`
                 SELECT 
-                    p2.*,
-                    pj.p_ID as p_ID, 
-                    pj.p_nameEN, 
-                    pj.p_nameTH, 
-                    pj.s_name1, 
-                    pj.s_name2, 
-                    pj.s_code1, 
-                    pj.s_code2
-                FROM project2 p2
-                LEFT JOIN project1 p1 ON p2.pj1_ID = p1.pj1_ID
-                LEFT JOIN project pj ON p1.p_ID = pj.p_ID
+                p2.*,
+                p2.yearPass2,
+                pj.p_ID as p_ID, 
+                pj.p_nameEN, 
+                pj.p_nameTH, 
+                pj.s_name1, 
+                pj.s_name2, 
+                pj.s_code1, 
+                pj.s_code2
+            FROM project2 p2
+            LEFT JOIN project1 p1 ON p2.pj1_ID = p1.pj1_ID
+            LEFT JOIN project pj ON p1.p_ID = pj.p_ID
             `);
             res.json(rows);
         } catch (error) {
@@ -69,15 +70,15 @@ const Project2Controller = {
         const { pj2_ID } = req.params;
         const {
             yearPj2, gradePj2, engS1, engS2, test30, docStatus2, passStatus2,
-            gradeSend1, gradeSend2, note, modifiedDate
+            gradeSend1, gradeSend2, note, yearPass2, modifiedDate
         } = req.body;
 
         try {
             await db.query(
                 `UPDATE project2 
-             SET yearPj2=?, gradePj2=?, engS1=?, engS2=?, test30=?, docStatus2=?, passStatus2=?, gradeSend1=?, gradeSend2=?, note=?, modifiedDate=? 
+             SET yearPj2=?, gradePj2=?, engS1=?, engS2=?, test30=?, docStatus2=?, passStatus2=?, gradeSend1=?, gradeSend2=?, note=?, yearPass2=?, modifiedDate=? 
              WHERE pj2_ID=?`,
-                [yearPj2, gradePj2, engS1, engS2, test30, docStatus2, passStatus2, gradeSend1, gradeSend2, note, modifiedDate, pj2_ID]
+                [yearPj2, gradePj2, engS1, engS2, test30, docStatus2, passStatus2, gradeSend1, gradeSend2, note, yearPass2, modifiedDate, pj2_ID]
             );
             res.json({ success: true });
         } catch (error) {
@@ -94,6 +95,19 @@ const Project2Controller = {
                 return res.status(404).json({ error: 'Not found' });
             }
             res.json(rows[0]);
+        } catch (error) {
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    },
+
+    async getYearPass2(req, res) {
+        try {
+            const [rows] = await db.query(`
+                SELECT p2.yearPass2, p1.pj1_ID
+                FROM project2 p2
+                LEFT JOIN project1 p1 ON p2.pj1_ID = p1.pj1_ID
+            `);
+            res.json(rows);
         } catch (error) {
             res.status(500).json({ error: 'Internal server error' });
         }

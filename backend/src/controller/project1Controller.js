@@ -114,7 +114,7 @@ const Project1Controller = {
 
     async updatePj1(req, res) {
         const { pj1_ID } = req.params;
-        let { mentorStatus, docStatus, grades, yearPj1, modifiedDate, note, passStatus } = req.body;
+        let { mentorStatus, docStatus, grades, yearPj1, modifiedDate, note, passStatus, yearPass1 } = req.body;
 
         try {
             // ดึงข้อมูลเดิมจาก database
@@ -132,10 +132,11 @@ const Project1Controller = {
             note = note !== undefined ? note : old.note;
             modifiedDate = modifiedDate || old.modifiedDate;
             passStatus = passStatus !== undefined ? passStatus : old.passStatus;
+            yearPass1 = (yearPass1 !== undefined && yearPass1 !== '') ? yearPass1 : old.yearPass1;
 
             // อัปเดตฟิลด์ grades (เก็บเป็น JSON string)
             await db.query(
-                'UPDATE project1 SET mentorStatus=?, docStatus=?, gradePj1=?, yearPj1=?, modifiedDate=?, note=?, pass=? WHERE pj1_ID=?',
+                'UPDATE project1 SET mentorStatus=?, docStatus=?, gradePj1=?, yearPj1=?, modifiedDate=?, note=?, pass=?, yearPass1=? WHERE pj1_ID=?',
                 [
                     mentorStatus,
                     docStatus,
@@ -144,6 +145,7 @@ const Project1Controller = {
                     modifiedDate,
                     note,
                     passStatus,
+                    yearPass1,
                     pj1_ID
                 ]
             );

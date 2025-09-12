@@ -277,6 +277,7 @@ function Project1() {
                             : p.yearPj1 ?? '',
                         modifiedDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
                         passStatus: passState[p.p_ID] ? 1 : 0,
+                        yearPass1: editState[p.p_ID]?.yearPass1 ?? p.yearPass1 ?? '',
                         note: remarkState[p.p_ID] ?? p.note ?? ''
                     });
                 }
@@ -431,6 +432,7 @@ function Project1() {
                                     <th className="w-[24px] px-1 py-1 border text-xs text-center break-words">ปีที่สอบ</th>
                                     <th className="w-[32px] px-1 py-1 border text-xs text-center break-words">ผ่าน/ไม่ผ่าน</th>
                                     <th className="w-[24px] px-1 py-1 border text-xs text-center break-words">เกรด(โปรเจค1)</th>
+                                    <th className="w-[24px] px-1 py-1 border text-xs text-center">ปีที่ผ่าน</th>
                                     <th className="w-[36px] px-1 py-1 border text-xs text-center break-words">หมายเหตุ</th>
                                 </tr>
                             </thead>
@@ -591,6 +593,19 @@ function Project1() {
                                                             <br />
                                                             <span>{p.grades?.grade2 || '-'}</span>
                                                         </>
+                                                    )}
+                                                </td>
+                                                <td className="w-[36px] px-1 py-1 border text-xs text-center">
+                                                    {isEditMode ? (
+                                                        <input
+                                                            type="text"
+                                                            className="w-20 text-xs border-0 border-b border-gray-400 rounded-none focus:ring-0 focus:border-blue-600 bg-transparent truncate"
+                                                            value={editState[p.p_ID]?.yearPass1 ?? p.yearPass1 ?? ''}
+                                                            onChange={handleEditChange(p.p_ID, 'yearPass1')}
+                                                            maxLength={10}
+                                                        />
+                                                    ) : (
+                                                        p.yearPass1 || '-'
                                                     )}
                                                 </td>
                                                 <td className="w-[36px] px-1 py-1 border text-xs text-center">

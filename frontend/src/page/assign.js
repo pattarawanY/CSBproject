@@ -273,7 +273,7 @@ function Assign() {
                                 <input
                                     type="text"
                                     className="w-full px-4 py-2 border rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#000066]"
-                                    placeholder="เช่น 2/2566"
+                                    placeholder="ปีที่เข้าระบบ เช่น 2/2566"
                                     required
                                     value={semester}
                                     onChange={e => setSemester(e.target.value)}

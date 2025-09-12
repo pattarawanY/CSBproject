@@ -6,6 +6,7 @@ router.get('/', Project2Controller.getAll);
 router.post('/', Project2Controller.create);
 router.post('/create', Project2Controller.create);
 router.put('/update/:pj2_ID', Project2Controller.update);
+router.get('/project2/yearpass2', Project2Controller.getYearPass2);
 router.get('/:p_ID', Project2Controller.getByProjectId);
 router.get('/by-pj1/:pj1_ID', Project2Controller.getByPj1Id);
 

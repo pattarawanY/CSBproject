@@ -380,6 +380,7 @@ function Project2() {
                         gradeSend1: editState[p.pj2_ID]?.gradeSend1 ? 1 : 0,
                         gradeSend2: editState[p.pj2_ID]?.gradeSend2 ? 1 : 0,
                         note: editState[p.pj2_ID]?.note ?? p.note,
+                        yearPass2: editState[p.pj2_ID]?.yearPass2 ?? p.yearPass2,
                         modifiedDate: new Date().toISOString().slice(0, 19).replace('T', ' ')
                     });
                 }
@@ -528,6 +529,7 @@ function Project2() {
                                     <th className="w-[60px] px-1 py-1 border text-xs text-center">ผ่าน/ไม่ผ่าน</th>
                                     <th className="w-[60px] px-1 py-1 border text-xs text-center">เกรด(โปรเจค2)</th>
                                     <th className="w-[60px] px-1 py-1 border text-xs text-center">ส่งเกรด</th>
+                                    <th className="w-[60px] px-1 py-1 border text-xs text-center">ปีที่ผ่าน</th>
                                     <th className="w-[40px] px-1 py-1 border text-xs text-center">หมายเหตุ</th>
                                 </tr>
                             </thead>
@@ -776,6 +778,20 @@ function Project2() {
                                                             <br />
                                                             {p.gradeSend2 === 1 ? '✔' : '-'}
                                                         </>
+                                                    )}
+                                                </td>
+                                                {/* ปีที่ผ่าน */}
+                                                <td className="w-[60px] px-1 py-1 border text-xs text-center">
+                                                    {isEditMode ? (
+                                                        <input
+                                                            type="text"
+                                                            className="w-16 max-w-[56px] text-xs border-0 border-b border-gray-400 bg-transparent text-center truncate"
+                                                            value={editState[p.pj2_ID]?.yearPass2 ?? p.yearPass2 ?? ''}
+                                                            onChange={handleEditChange(p.pj2_ID, 'yearPass2')}
+                                                            maxLength={10}
+                                                        />
+                                                    ) : (
+                                                        (p.passStatus2 === 1 ? (p.yearPass2 || '-') : '-')
                                                     )}
                                                 </td>
                                                 {/* หมายเหตุ */}
