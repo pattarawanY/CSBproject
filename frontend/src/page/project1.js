@@ -20,6 +20,8 @@ function Project1() {
     const handleCancelEdit = () => setIsEditMode(false);
     const [selectedSemester, setSelectedSemester] = useState('');
     const [gradesState, setGradesState] = useState({});
+    const [mentorState, setMentorState] = useState({});
+    const [teachers, setTeachers] = useState([]);
 
     useEffect(() => {
         const fetchProject1WithProject = async () => {
@@ -41,64 +43,83 @@ function Project1() {
     }, []);
 
     useEffect(() => {
-        if (Object.keys(project1Data).length > 0) {
-            const initial = {};
-            projects.forEach(p => {
-                const pj1 = project1Data[p.p_ID];
-                initial[p.p_ID] = pj1 ? pj1.yearPj1 || '' : '';
-            });
-            setYearState(initial);
-        }
-    }, [project1Data, projects]);
+        const fetchTeachers = async () => {
+            try {
+                const res = await axios.get('http://localhost:8000/teacher/all');
+                setTeachers(res.data); // teachers = [{t_ID, t_name}, ...]
+            } catch (error) {
+                console.error('Error fetching teachers:', error);
+            }
+        };
+        fetchTeachers();
+    }, []);
 
     useEffect(() => {
-        if (Object.keys(project1Data).length > 0) {
-            const initial = {};
-            projects.forEach(p => {
-                const pj1 = project1Data[p.p_ID];
-                initial[p.p_ID] = pj1 ? pj1.remark || '' : '';
-            });
-            setRemarkState(initial);
-        }
-    }, [project1Data, projects]);
+        if (Object.keys(project1Data).length > 0 && projects.length > 0) {
+            const yearInit = {};
+            const remarkInit = {};
+            const checkboxInit = {};
+            const gradesInit = {};
+            const passInit = {};
+            const mentorInit = {};
 
-    useEffect(() => {
-        if (Object.keys(project1Data).length > 0) {
-            const initial = {};
             projects.forEach(p => {
                 const pj1 = project1Data[p.p_ID];
-                initial[p.p_ID] = {
+
+                yearInit[p.p_ID] = pj1?.yearPj1 || '';
+                remarkInit[p.p_ID] = pj1?.remark || '';
+                checkboxInit[p.p_ID] = {
                     mentorStatus: pj1 ? String(pj1.mentorStatus ?? '0') === '1' : false,
-                    docStatus: pj1 ? String(pj1.docStatus ?? '0') === '1' : false,
+                    docStatus: pj1 ? String(pj1.docStatus ?? '0') === '1' : false
                 };
-            });
-            setCheckboxState(initial);
-        }
-    }, [project1Data, projects]);
-
-    useEffect(() => {
-        if (Object.keys(project1Data).length > 0) {
-            const initial = {};
-            projects.forEach(p => {
-                const pj1 = project1Data[p.p_ID];
-                initial[p.p_ID] = pj1 && pj1.grades
+                gradesInit[p.p_ID] = pj1?.grades
                     ? { grade1: pj1.grades.grade1 || '', grade2: pj1.grades.grade2 || '' }
                     : { grade1: '', grade2: '' };
+                passInit[p.p_ID] = pj1 ? String(pj1.passStatus ?? '0') === '1' : false;
+
+                mentorInit[p.p_ID] = {
+                    mainMentor: pj1?.mainMentor || '',
+                    coMentor: pj1?.coMentor || ''
+                };
             });
-            setGradesState(initial);
+
+            setYearState(yearInit);
+            setRemarkState(remarkInit);
+            setCheckboxState(checkboxInit);
+            setGradesState(gradesInit);
+            setPassState(passInit);
+            // setMentorState(mentorInit);
         }
     }, [project1Data, projects]);
 
     useEffect(() => {
-        if (Object.keys(project1Data).length > 0) {
-            const initial = {};
-            projects.forEach(p => {
-                const pj1 = project1Data[p.p_ID];
-                initial[p.p_ID] = pj1 ? String(pj1.passStatus ?? '0') === '1' : false;
-            });
-            setPassState(initial);
-        }
-    }, [project1Data, projects]);
+        const fetchProjectMentors = async () => {
+            try {
+                const res = await axios.get('http://localhost:8000/project-mentors');
+                const projectsData = res.data;
+
+                // setProjects สำหรับแสดงในตาราง
+                setProjects(projectsData);
+
+                // สร้าง mentorState เริ่มต้นจาก API
+                const initialMentorState = {};
+                projectsData.forEach(p => {
+                    initialMentorState[p.p_ID] = {
+                        mainMentor: p.mainMentorName || '', // ถ้า null -> ''
+                        coMentor: p.coMentorName || ''
+                    };
+                });
+                setMentorState(initialMentorState);
+
+            } catch (error) {
+                console.error('Error fetching mentor names for all projects:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProjectMentors();
+    }, []);
 
     const handleYearChange = (p_ID) => (e) => {
         setYearState(prev => ({
@@ -428,6 +449,8 @@ function Project1() {
                                     <th className="w-[80px] px-4 py-2 border text-xs text-center break-words whitespace-normal">ชื่อนักศึกษา</th>
                                     <th className="w-[38px] px-4 py-2 border text-xs text-center break-words">รหัสนักศึกษา</th>
                                     <th className="w-[32px] px-1 py-1 border text-xs text-center break-words">แต่งตั้งที่ปรึกษา</th>
+                                    <th className="w-[24px] px-1 py-1 border text-xs text-center break-words">ที่ปรึกษาหลัก</th>
+                                    <th className="w-[24px] px-1 py-1 border text-xs text-center break-words">ที่ปรึกษาร่วม</th>
                                     <th className="w-[32px] px-1 py-1 border text-xs text-center break-words">เอกสารขอสอบ</th>
                                     <th className="w-[24px] px-1 py-1 border text-xs text-center break-words">ปีที่สอบ</th>
                                     <th className="w-[32px] px-1 py-1 border text-xs text-center break-words">ผ่าน/ไม่ผ่าน</th>
@@ -439,7 +462,7 @@ function Project1() {
                             <tbody>
                                 {filteredProjects.length === 0 ? (
                                     <tr>
-                                        <td colSpan={9} className="text-center py-6 text-gray-500 text-sm">
+                                        <td colSpan={11} className="text-center py-6 text-gray-500 text-sm">
                                             ไม่มีข้อมูล
                                         </td>
                                     </tr>
@@ -528,6 +551,48 @@ function Project1() {
                                                         />
                                                     ) : (
                                                         String(p.mentorStatus) === '1' ? '✔' : '-'
+                                                    )}
+                                                </td>
+                                                <td className="w-[24px] px-1 py-1 border text-xs text-center">
+                                                    {isEditMode ? (
+                                                        <select
+                                                            className="text-xs border-0 border-b border-gray-400 rounded-none focus:ring-0 focus:border-blue-600 bg-transparent truncate"
+                                                            value={mentorState[p.p_ID]?.mainMentor || ''}
+                                                            onChange={(e) =>
+                                                                setMentorState(prev => ({
+                                                                    ...prev,
+                                                                    [p.p_ID]: { ...prev[p.p_ID], mainMentor: e.target.value }
+                                                                }))
+                                                            }
+                                                        >
+                                                            <option value="">- ไม่มี -</option>
+                                                            {teachers.map(t => (
+                                                                <option key={t.t_ID} value={t.t_name}>{t.t_name}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : (
+                                                        mentorState[p.p_ID]?.mainMentor || '-'
+                                                    )}
+                                                </td>
+                                                <td className="w-[24px] px-1 py-1 border text-xs text-center">
+                                                    {isEditMode ? (
+                                                        <select
+                                                            className="text-xs border-0 border-b border-gray-400 rounded-none focus:ring-0 focus:border-blue-600 bg-transparent truncate"
+                                                            value={mentorState[p.p_ID]?.coMentor || ''}
+                                                            onChange={(e) =>
+                                                                setMentorState(prev => ({
+                                                                    ...prev,
+                                                                    [p.p_ID]: { ...prev[p.p_ID], coMentor: e.target.value }
+                                                                }))
+                                                            }
+                                                        >
+                                                            <option value="">- ไม่มี -</option>
+                                                            {teachers.map(t => (
+                                                                <option key={t.t_ID} value={t.t_name}>{t.t_name}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : (
+                                                        mentorState[p.p_ID]?.coMentor || '-'
                                                     )}
                                                 </td>
                                                 <td className="w-[32px] px-1 py-1 border text-xs text-center">

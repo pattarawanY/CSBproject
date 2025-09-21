@@ -8,7 +8,7 @@ function AllProject() {
     const [search, setSearch] = useState('');
     const [selectedSemester, setSelectedSemester] = useState('');
     const [projectsWithStatus, setProjectsWithStatus] = useState([]);
-    const [yearPass2Map, setYearPass2Map] = useState({});
+    const [yearPass2Map, setYearPass2Map] = useState(new Map());
 
     useEffect(() => {
         const fetchTeachername = async () => {
@@ -90,10 +90,9 @@ function AllProject() {
         const fetchYearPass2 = async () => {
             try {
                 const res = await axios.get('http://localhost:8000/project2/yearpass2');
-                // สร้าง map จาก pj1_ID -> yearPass2
-                const map = {};
+                const map = new Map();
                 res.data.forEach(row => {
-                    map[row.pj1_ID] = row.yearPass2;
+                    map.set(row.pj1_ID, row.yearPass2);
                 });
                 setYearPass2Map(map);
             } catch (error) {
@@ -145,10 +144,14 @@ function AllProject() {
                                             <th className="w-[36px] px-2 py-1 border text-xs text-center">ปีที่ผ่าน</th>
                                         </tr>
                                     </thead>
+
                                     <tbody>
                                         {filteredProjects.length === 0 ? (
                                             <tr>
-                                                <td colSpan={9} className="text-center py-6 text-gray-500 text-sm">
+                                                <td
+                                                    colSpan={8}
+                                                    className="text-center py-6 text-gray-500 text-sm border"
+                                                >
                                                     ไม่มีข้อมูล
                                                 </td>
                                             </tr>
@@ -156,20 +159,41 @@ function AllProject() {
                                             filteredProjects.map((p, idx) => (
                                                 <tr key={p.p_ID || idx} className="bg-white">
                                                     <td className="px-2 py-1 border text-xs text-center">{idx + 1}</td>
+
                                                     <td className="px-4 py-2 border text-xs text-left">
-                                                        {p.p_nameEN}<br />{p.p_nameTH}
+                                                        {p.p_nameEN}
+                                                        <br />
+                                                        {p.p_nameTH}
                                                     </td>
+
                                                     <td className="px-4 py-2 border text-xs text-left">
-                                                        {p.s_name1}<br />{p.s_name2}
+                                                        {p.s_name1}
+                                                        <br />
+                                                        {p.s_name2}
                                                     </td>
+
                                                     <td className="px-4 py-2 border text-xs text-left">
-                                                        {p.s_code1}<br />{p.s_code2}
+                                                        {p.s_code1}
+                                                        <br />
+                                                        {p.s_code2}
                                                     </td>
-                                                    <td className="px-2 py-1 border text-center text-xs">{p.mainMentorName || '-'}</td>
-                                                    <td className="px-2 py-1 border text-center text-xs">{p.coMentorName || '-'}</td>
-                                                    <td className="px-2 py-1 border text-xs text-center">{p.statusLabel || '-'}</td>
+
+                                                    <td className="px-2 py-1 border text-center text-xs">
+                                                        {p.mainMentorName || '-'}
+                                                    </td>
+
+                                                    <td className="px-2 py-1 border text-center text-xs">
+                                                        {p.coMentorName || '-'}
+                                                    </td>
+
                                                     <td className="px-2 py-1 border text-xs text-center">
-                                                        {p.statusLabel === 'ผ่านทั้งหมดแล้ว' ? (p.yearPass2 || '-') : '-'}
+                                                        {p.statusLabel || '-'}
+                                                    </td>
+
+                                                    <td className="px-2 py-1 border text-xs text-center">
+                                                        {p.statusLabel === 'ผ่านทั้งหมดแล้ว'
+                                                            ? yearPass2Map.get(String(p.p_ID)) || '-'
+                                                            : '-'}
                                                     </td>
                                                 </tr>
                                             ))

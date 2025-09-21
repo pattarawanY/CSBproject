@@ -103,12 +103,11 @@ const Project2Controller = {
     async getYearPass2(req, res) {
         try {
             const [rows] = await db.query(`
-                SELECT p2.yearPass2, p1.pj1_ID
-                FROM project2 p2
-                LEFT JOIN project1 p1 ON p2.pj1_ID = p1.pj1_ID
-            `);
+            SELECT pj1_ID, yearPass2 FROM project2
+        `);
             res.json(rows);
         } catch (error) {
+            console.error('DB Error:', error); // ✅ เพิ่มบรรทัดนี้
             res.status(500).json({ error: 'Internal server error' });
         }
     }
