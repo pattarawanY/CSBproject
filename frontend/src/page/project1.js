@@ -88,14 +88,20 @@ function Project1() {
             setCheckboxState(checkboxInit);
             setGradesState(gradesInit);
             setPassState(passInit);
-            // setMentorState(mentorInit);
+
+            console.log('Initial yearState:', yearInit);
+            console.log('Initial remarkState:', remarkInit);
+            console.log('Initial checkboxState:', checkboxInit);
+            console.log('Initial gradesState:', gradesInit);
+            console.log('Initial passState:', passInit);
+            console.log('Initial mentorState:', mentorInit);
         }
     }, [project1Data, projects]);
 
     useEffect(() => {
         const fetchProjectMentors = async () => {
             try {
-                const res = await axios.get('http://localhost:8000/project-mentors');
+                const res = await axios.get('http://localhost:8000/teacher/project-mentors');
                 const projectsData = res.data;
 
                 // setProjects สำหรับแสดงในตาราง
@@ -337,6 +343,78 @@ function Project1() {
         }
     };
 
+    useEffect(() => {
+        const fetchProjectMentors = async () => {
+            try {
+                const res = await axios.get('http://localhost:8000/teacher/project-mentors');
+                const projectsData = res.data;
+
+                // setProjects สำหรับแสดงในตาราง
+                setProjects(projectsData);
+
+                // สร้าง mentorState เริ่มต้นจาก API
+                const initialMentorState = {};
+                projectsData.forEach(p => {
+                    initialMentorState[p.p_ID] = {
+                        mainMentor: p.mainMentorName || '', // ถ้า null -> ''
+                        coMentor: p.coMentorName || ''
+                    };
+                });
+                setMentorState(initialMentorState);
+
+            } catch (error) {
+                console.error('Error fetching mentor names for all projects:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProjectMentors();
+    }, []);
+
+    useEffect(() => {
+        if (projects.length > 0 && Object.keys(project1Data).length > 0) {
+            const initialCheckboxState = {};
+            projects.forEach(p => {
+                const pj1 = project1Data[p.p_ID];
+                initialCheckboxState[p.p_ID] = {
+                    mentorStatus: pj1 ? String(pj1.mentorStatus ?? '0') === '1' : false,
+                    docStatus: pj1 ? String(pj1.docStatus ?? '0') === '1' : false
+                };
+            });
+            setCheckboxState(initialCheckboxState);
+
+            const initRemarks = {};
+            projects.forEach(p => {
+                const pj1 = project1Data[p.p_ID];
+                initRemarks[p.p_ID] = pj1?.note || '';
+            });
+            setRemarkState(initRemarks);
+
+            const initialGradesState = {};
+            projects.forEach(p => {
+                const pj1 = project1Data[p.p_ID];
+                initialGradesState[p.p_ID] = pj1?.grades
+                    ? { grade1: pj1.grades.grade1 || '', grade2: pj1.grades.grade2 || '' }
+                    : { grade1: '', grade2: '' };
+            });
+            setGradesState(initialGradesState);
+
+            const initialYearState = {};
+            projects.forEach(p => {
+                initialYearState[p.p_ID] = project1Data[p.p_ID]?.yearPj1 || '';
+            });
+            setYearState(initialYearState);
+
+            const initialPassState = {};
+            projects.forEach(p => {
+                const pj1 = project1Data[p.p_ID];
+                initialPassState[p.p_ID] = pj1 ? String(pj1.passStatus ?? '0') === '1' : false;
+            });
+            setPassState(initialPassState);
+        }
+    }, [project1Data, projects]);
+
     return (
         <div className="flex flex-col h-screen">
             <Navbar
@@ -547,53 +625,20 @@ function Project1() {
                                                             type="checkbox"
                                                             checked={checkboxState[p.p_ID]?.mentorStatus || false}
                                                             onChange={handleCheckboxChange(p.p_ID, 'mentorStatus')}
-                                                            disabled={!isEditMode}
                                                         />
                                                     ) : (
-                                                        String(p.mentorStatus) === '1' ? '✔' : '-'
+                                                        checkboxState[p.p_ID]?.mentorStatus ? '✔' : '-'
                                                     )}
                                                 </td>
-                                                <td className="w-[24px] px-1 py-1 border text-xs text-center">
-                                                    {isEditMode ? (
-                                                        <select
-                                                            className="text-xs border-0 border-b border-gray-400 rounded-none focus:ring-0 focus:border-blue-600 bg-transparent truncate"
-                                                            value={mentorState[p.p_ID]?.mainMentor || ''}
-                                                            onChange={(e) =>
-                                                                setMentorState(prev => ({
-                                                                    ...prev,
-                                                                    [p.p_ID]: { ...prev[p.p_ID], mainMentor: e.target.value }
-                                                                }))
-                                                            }
-                                                        >
-                                                            <option value="">- ไม่มี -</option>
-                                                            {teachers.map(t => (
-                                                                <option key={t.t_ID} value={t.t_name}>{t.t_name}</option>
-                                                            ))}
-                                                        </select>
-                                                    ) : (
-                                                        mentorState[p.p_ID]?.mainMentor || '-'
-                                                    )}
+                                                <td className="px-2 py-1 border text-xs text-center">
+                                                    <div className="text-xs text-center truncate">
+                                                        {mentorState[p.p_ID]?.mainMentor || '-'}
+                                                    </div>
                                                 </td>
-                                                <td className="w-[24px] px-1 py-1 border text-xs text-center">
-                                                    {isEditMode ? (
-                                                        <select
-                                                            className="text-xs border-0 border-b border-gray-400 rounded-none focus:ring-0 focus:border-blue-600 bg-transparent truncate"
-                                                            value={mentorState[p.p_ID]?.coMentor || ''}
-                                                            onChange={(e) =>
-                                                                setMentorState(prev => ({
-                                                                    ...prev,
-                                                                    [p.p_ID]: { ...prev[p.p_ID], coMentor: e.target.value }
-                                                                }))
-                                                            }
-                                                        >
-                                                            <option value="">- ไม่มี -</option>
-                                                            {teachers.map(t => (
-                                                                <option key={t.t_ID} value={t.t_name}>{t.t_name}</option>
-                                                            ))}
-                                                        </select>
-                                                    ) : (
-                                                        mentorState[p.p_ID]?.coMentor || '-'
-                                                    )}
+                                                <td className="px-2 py-1 border text-xs text-center">
+                                                    <div className="text-xs text-center truncate">
+                                                        {mentorState[p.p_ID]?.coMentor || '-'}
+                                                    </div>
                                                 </td>
                                                 <td className="w-[32px] px-1 py-1 border text-xs text-center">
                                                     {isEditMode ? (
@@ -601,10 +646,9 @@ function Project1() {
                                                             type="checkbox"
                                                             checked={checkboxState[p.p_ID]?.docStatus || false}
                                                             onChange={handleCheckboxChange(p.p_ID, 'docStatus')}
-                                                            disabled={!isEditMode}
                                                         />
                                                     ) : (
-                                                        String(p.docStatus) === '1' ? '✔' : '-'
+                                                        checkboxState[p.p_ID]?.docStatus ? '✔' : '-'
                                                     )}
                                                 </td>
                                                 <td className="w-[36px] px-1 py-1 border text-xs text-center">
@@ -617,7 +661,7 @@ function Project1() {
                                                             maxLength={10}
                                                         />
                                                     ) : (
-                                                        p.yearPj1 || '-'
+                                                        yearState[p.p_ID] || '-'
                                                     )}
                                                 </td>
                                                 <td className="w-[32px] px-1 py-1 border text-xs text-center">
@@ -629,7 +673,7 @@ function Project1() {
                                                             disabled={!isEditMode}
                                                         />
                                                     ) : (
-                                                        String(p.passStatus) === '1' ? '✔' : 'ยังไม่ผ่าน'
+                                                        passState[p.p_ID] ? '✔' : 'ยังไม่ผ่าน'
                                                     )}
                                                 </td>
                                                 <td className="w-[48px] px-1 py-1 border text-xs text-center">
@@ -654,9 +698,9 @@ function Project1() {
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <span>{p.grades?.grade1 || '-'}</span>
+                                                            <span>{gradesState[p.p_ID]?.grade1 || '-'}</span>
                                                             <br />
-                                                            <span>{p.grades?.grade2 || '-'}</span>
+                                                            <span>{gradesState[p.p_ID]?.grade2 || '-'}</span>
                                                         </>
                                                     )}
                                                 </td>
@@ -665,12 +709,12 @@ function Project1() {
                                                         <input
                                                             type="text"
                                                             className="w-20 text-xs border-0 border-b border-gray-400 rounded-none focus:ring-0 focus:border-blue-600 bg-transparent truncate"
-                                                            value={editState[p.p_ID]?.yearPass1 ?? p.yearPass1 ?? ''}
+                                                            value={editState[p.p_ID]?.yearPass1 ?? project1Data[p.p_ID]?.yearPass1 ?? ''}
                                                             onChange={handleEditChange(p.p_ID, 'yearPass1')}
                                                             maxLength={10}
                                                         />
                                                     ) : (
-                                                        p.yearPass1 || '-'
+                                                        project1Data[p.p_ID]?.yearPass1 || '-'
                                                     )}
                                                 </td>
                                                 <td className="w-[36px] px-1 py-1 border text-xs text-center">
@@ -683,7 +727,7 @@ function Project1() {
                                                             maxLength={30}
                                                         />
                                                     ) : (
-                                                        p.note || '-'
+                                                        remarkState[p.p_ID] || '-'
                                                     )}
                                                 </td>
                                             </tr>

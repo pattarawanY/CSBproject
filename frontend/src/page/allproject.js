@@ -9,6 +9,8 @@ function AllProject() {
     const [selectedSemester, setSelectedSemester] = useState('');
     const [projectsWithStatus, setProjectsWithStatus] = useState([]);
     const [yearPass2Map, setYearPass2Map] = useState(new Map());
+    const [teachers, setTeachers] = useState([]);
+    const [mentorState, setMentorState] = useState({});
 
     useEffect(() => {
         const fetchTeachername = async () => {
@@ -117,6 +119,26 @@ function AllProject() {
         const matchSemester = !selectedSemester || p.semester === selectedSemester;
         return matchSearch && matchSemester;
     });
+
+    // const handleUpdateMentor = async (projectId) => {
+    //     try {
+    //         // หา t_ID ของอาจารย์จากชื่อ
+    //         const mainMentorObj = teachers.find(t => t.t_name === mentorState[projectId]?.mainMentor);
+    //         const coMentorObj = teachers.find(t => t.t_name === mentorState[projectId]?.coMentor);
+
+    //         const payload = {
+    //             mainMentor: mainMentorObj ? mainMentorObj.t_ID : null,
+    //             coMentor: coMentorObj ? coMentorObj.t_ID : null
+    //         };
+
+    //         await axios.put(`http://localhost:8000/updateByProject/${projectId}`, payload);
+
+    //         alert("อัพเดตข้อมูลอาจารย์สำเร็จ ✅");
+    //     } catch (err) {
+    //         console.error("Error updating mentors:", err);
+    //         alert("อัพเดตไม่สำเร็จ ❌");
+    //     }
+    // };
 
     return (
         <div>
